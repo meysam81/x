@@ -9,7 +9,7 @@ on:
       - main
 
 jobs:
-  lint:
+  checks:
     permissions:
       contents: read
       pull-requests: read

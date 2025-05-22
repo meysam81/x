@@ -50,6 +50,7 @@ func WithJournalMode(journalMode string) func(*connectionOption) {
 
 // NewDB creates a new SQLite database connection with the specified options.
 // Provide the filepath only as the relative or absolute path to the database file.
+// For example "test.db", "./my/relative/path/to/test.db", or "/absolute/path/to/test.db".
 // For options, you can use the provided functions to set the connection parameters.
 func NewDB(ctx context.Context, filepath string, opts ...func(*connectionOption)) (*sql.DB, error) {
 	if filepath == "" {
