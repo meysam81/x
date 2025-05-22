@@ -19,6 +19,8 @@ type options struct {
 	yamlWatchEnabled bool
 }
 
+type Config koanf.Koanf
+
 func WithDelimiter(delim string) func(*options) {
 	return func(o *options) {
 		o.delimiter = delim
@@ -49,7 +51,7 @@ func WithoutYamlWatch() func(*options) {
 	}
 }
 
-func NewConfig(opts ...func(*options)) (k *koanf.Koanf, err error) {
+func NewConfig(opts ...func(*options)) (k *Config, err error) {
 	o := &options{
 		delimiter:        ".",
 		jsonWatchEnabled: true,
