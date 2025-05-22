@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.1](https://github.com/meysam81/x/compare/v1.0.0...v1.0.1) (2025-05-22)
+
+
+### Bug Fixes
+
+* modify blank type syntax ([232150c](https://github.com/meysam81/x/commit/232150c05c1cd6cfb31feb76b7073b05a304b96f))
+
 ## 1.0.0 (2025-05-22)
 
 
