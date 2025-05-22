@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"os"
+	"strings"
 	"time"
 )
 
@@ -90,18 +91,11 @@ func NewDB(ctx context.Context, filepath string, opts ...func(*connectionOption)
 
 	dsn := filepath
 
-	switch len(params) {
-	case 0:
-	case 1:
-		dsn += "?" + params[0]
-	default:
-		dsn += "?" + params[0]
-		for i := 1; i < len(params); i++ {
-			dsn += "&" + params[i]
-		}
+	if o := strings.Join(params, "&"); o != "" {
+		dsn += "?" + o
 	}
 
-	db, err := sql.Open("sqlite3", dsn)
+	db, err := sql.Open(ENGINE, dsn)
 	if err != nil {
 		return nil, err
 	}
