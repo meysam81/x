@@ -19,7 +19,7 @@ type options struct {
 	yamlWatchEnabled bool
 }
 
-type Config koanf.Koanf
+type Config = koanf.Koanf
 
 func WithDelimiter(delim string) func(*options) {
 	return func(o *options) {
