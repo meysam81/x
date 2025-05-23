@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.2.0](https://github.com/meysam81/x/compare/v1.1.0...v1.2.0) (2025-05-23)
+
+
+### Features
+
+* allow preload the config with default first ([49aa69d](https://github.com/meysam81/x/commit/49aa69d81b699c5e417564e8489676dd6f4731ef))
+
+
+### Bug Fixes
+
+* rename files to comply with go community ([593eb2d](https://github.com/meysam81/x/commit/593eb2d652be45f6b87d461ea3c9ea1cad8902ea))
+* rename the http logging module ([dc6ab26](https://github.com/meysam81/x/commit/dc6ab266cb500cd4413cbeab6eee518f7bf9fce8))
+
 ## [1.1.0](https://github.com/meysam81/x/compare/v1.0.1...v1.1.0) (2025-05-23)
 
 
