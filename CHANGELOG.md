@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.1.0](https://github.com/meysam81/x/compare/v1.0.1...v1.1.0) (2025-05-23)
+
+
+### Features
+
+* add gin lib ([7a2a765](https://github.com/meysam81/x/commit/7a2a76553cbf623670e9bed3e5189b863e85e1c1))
+* add logging with zerolog ([bfc7c8b](https://github.com/meysam81/x/commit/bfc7c8bc2838ff5ba8154e44053029a833f86dfb))
+* add nethttp-logging middleware ([e57f539](https://github.com/meysam81/x/commit/e57f5397858b579cafcef7a7eeea3b09727acfc5))
+
 ## [1.0.1](https://github.com/meysam81/x/compare/v1.0.0...v1.0.1) (2025-05-22)
 
 
