@@ -20,6 +20,10 @@ type options struct {
 }
 
 type Config = koanf.Koanf
+type unloadedConfig struct {
+	k *Config
+	o *options
+}
 
 func WithDelimiter(delim string) func(*options) {
 	return func(o *options) {
@@ -51,7 +55,7 @@ func WithoutYamlWatch() func(*options) {
 	}
 }
 
-func NewConfig(opts ...func(*options)) (k *Config, err error) {
+func NewConfig(opts ...func(*options)) (*unloadedConfig, error) {
 	o := &options{
 		delimiter:        ".",
 		jsonWatchEnabled: true,
@@ -62,51 +66,60 @@ func NewConfig(opts ...func(*options)) (k *Config, err error) {
 		opt(o)
 	}
 
-	k = koanf.New(o.delimiter)
+	k := koanf.New(o.delimiter)
 
-	err = loadConfig(k, o)
-	if err != nil {
-		return nil, err
-	}
-
-	return k, nil
+	return &unloadedConfig{
+		k,
+		o,
+	}, nil
 }
 
-func loadConfig(k *koanf.Koanf, o *options) (err error) {
-	if o.jsonConfig != "" {
-		_, err := os.Stat(o.jsonConfig)
-		if err != nil {
-			return err
+func (u *unloadedConfig) LoadConfig() (err error) {
+	err = u.k.Load(env.ProviderWithValue("", ".", func(key, value string) (string, interface{}) {
+		k := strings.ToLower(strings.ReplaceAll(key, "_", "."))
+
+		if strings.Contains(value, " ") {
+			return k, strings.Split(value, " ")
 		}
 
-		f := file.Provider(o.jsonConfig)
-
-		// TODO: provide watch functionality
-
-		err = k.Load(f, json.Parser())
-		if err != nil {
-			return err
-		}
-	}
-
-	if o.yamlConfig != "" {
-		_, err := os.Stat(o.yamlConfig)
-		if err != nil {
-			return err
-		}
-
-		err = k.Load(file.Provider(o.yamlConfig), yaml.Parser())
-		if err != nil {
-			return err
-		}
-	}
-
-	err = k.Load(env.Provider("", "_", func(s string) string {
-		return strings.ToLower(strings.ReplaceAll(s, "_", "."))
+		return k, value
 	}), nil)
+
 	if err != nil {
 		return err
 	}
 
+	if u.o.jsonConfig != "" {
+		_, err := os.Stat(u.o.jsonConfig)
+		if err != nil {
+			return err
+		}
+
+		f := file.Provider(u.o.jsonConfig)
+
+		// TODO: provide watch functionality
+
+		err = u.k.Load(f, json.Parser())
+		if err != nil {
+			return err
+		}
+	}
+
+	if u.o.yamlConfig != "" {
+		_, err := os.Stat(u.o.yamlConfig)
+		if err != nil {
+			return err
+		}
+
+		err = u.k.Load(file.Provider(u.o.yamlConfig), yaml.Parser())
+		if err != nil {
+			return err
+		}
+	}
+
 	return nil
+}
+
+func (u *unloadedConfig) Koanf() *Config {
+	return u.k
 }
