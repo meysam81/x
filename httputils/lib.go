@@ -1,4 +1,4 @@
-package nethttp_logging
+package httputils
 
 import (
 	"fmt"
