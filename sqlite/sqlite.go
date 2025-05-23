@@ -81,17 +81,21 @@ func NewDB(ctx context.Context, filepath string, opts ...func(*connectionOption)
 
 	params := make([]string, 2)
 
+	query := false
 	if options.mode != "" {
 		params = append(params, "mode="+options.mode)
+		query = true
 	}
 
 	if options.journalMode != "" {
 		params = append(params, "journal_mode="+options.journalMode)
+		query = true
 	}
 
 	dsn := filepath
 
-	if o := strings.Join(params, "&"); o != "" {
+	o := strings.Join(params, "&")
+	if query && o != "" {
 		dsn += "?" + o
 	}
 
