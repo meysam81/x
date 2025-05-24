@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.1](https://github.com/meysam81/x/compare/v1.2.0...v1.2.1) (2025-05-24)
+
+
+### Bug Fixes
+
+* move zerolog logger to gin options ([d4a6f4b](https://github.com/meysam81/x/commit/d4a6f4bb4bb697e670b2dc3408c76bc1045969e8))
+
 ## [1.2.0](https://github.com/meysam81/x/compare/v1.1.0...v1.2.0) (2025-05-23)
 
 
