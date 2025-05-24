@@ -17,6 +17,7 @@ type options struct {
 	jsonWatchEnabled bool
 	yamlConfig       string
 	yamlWatchEnabled bool
+	envPrefix        string
 }
 
 type Config = koanf.Koanf
@@ -55,6 +56,12 @@ func WithoutYamlWatch() func(*options) {
 	}
 }
 
+func WithEnvPrefix(p string) func(*options) {
+	return func(o *options) {
+		o.envPrefix = p
+	}
+}
+
 func NewConfig(opts ...func(*options)) (*unloadedConfig, error) {
 	o := &options{
 		delimiter:        ".",
@@ -74,9 +81,9 @@ func NewConfig(opts ...func(*options)) (*unloadedConfig, error) {
 	}, nil
 }
 
-func (u *unloadedConfig) LoadConfig() (err error) {
-	err = u.k.Load(env.ProviderWithValue("", ".", func(key, value string) (string, interface{}) {
-		k := strings.ToLower(strings.ReplaceAll(key, "_", "."))
+func (u *unloadedConfig) Build() (err error) {
+	err = u.k.Load(env.ProviderWithValue(u.o.envPrefix, ".", func(key, value string) (string, interface{}) {
+		k := strings.ToLower(strings.ReplaceAll(strings.TrimPrefix(key, u.o.envPrefix), "_", "."))
 
 		if strings.Contains(value, " ") {
 			return k, strings.Split(value, " ")
