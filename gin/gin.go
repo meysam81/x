@@ -10,11 +10,13 @@ import (
 type Gin = gin.Engine
 
 type options struct {
-	keepDefaultWriter      bool
-	keepDefaultErrorWriter bool
-	errorHandler           *gin.HandlerFunc
-	zerologDisabled        bool
-	ginLoggerEnabled       bool
+	keepDefaultWriter          bool
+	keepDefaultErrorWriter     bool
+	errorHandler               *gin.HandlerFunc
+	ginLoggerEnabled           bool
+	disableNullifyTrustedProxy bool
+	logger                     *logging.Logger
+	disableSetReleaseMode      bool
 }
 
 func WithKeepDefaultWriter() func(*options) {
@@ -35,24 +37,38 @@ func WithCustomErrorHandler(h *gin.HandlerFunc) func(*options) {
 	}
 }
 
-func WithZeroLogDisabled() func(*options) {
-	return func(o *options) {
-		o.zerologDisabled = true
-	}
-}
-
 func WithGinLoggerEnabled() func(*options) {
 	return func(o *options) {
 		o.ginLoggerEnabled = true
 	}
 }
 
-func NewGin(logger *logging.Logger, opts ...func(*options)) *Gin {
+func WithZerologLogger(l *logging.Logger) func(*options) {
+	return func(o *options) {
+		o.logger = l
+	}
+}
+
+func WithDisableSetModeRelease() func(*options) {
+	return func(o *options) {
+		o.disableSetReleaseMode = true
+	}
+}
+
+func NewGin(opts ...func(*options)) *Gin {
 	g := gin.New()
 
 	o := &options{}
 	for _, opt := range opts {
 		opt(o)
+	}
+
+	if !o.disableNullifyTrustedProxy {
+		g.SetTrustedProxies(nil)
+	}
+
+	gin.SetMode(gin.ReleaseMode)
+	if !o.disableSetReleaseMode {
 	}
 
 	if !o.keepDefaultWriter {
@@ -63,8 +79,8 @@ func NewGin(logger *logging.Logger, opts ...func(*options)) *Gin {
 		gin.DefaultErrorWriter = io.Discard
 	}
 
-	if !o.zerologDisabled && logger != nil {
-		g.Use(zerologMiddleware(logger))
+	if o.logger != nil {
+		g.Use(zerologMiddleware(o.logger))
 	}
 
 	if o.ginLoggerEnabled {
