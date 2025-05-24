@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.3.0](https://github.com/meysam81/x/compare/v1.2.1...v1.3.0) (2025-05-24)
+
+
+### Features
+
+* **config:** allow customizing the env prefix ([f7a3a9c](https://github.com/meysam81/x/commit/f7a3a9c410f324cd8106f9c3ce31512c6310e459))
+
 ## [1.2.1](https://github.com/meysam81/x/compare/v1.2.0...v1.2.1) (2025-05-24)
 
 
