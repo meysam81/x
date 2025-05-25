@@ -83,7 +83,10 @@ func NewConfig(opts ...func(*options)) (*unloadedConfig, error) {
 
 func (u *unloadedConfig) Build() (err error) {
 	err = u.k.Load(env.ProviderWithValue(u.o.envPrefix, ".", func(key, value string) (string, interface{}) {
-		k := strings.ToLower(strings.ReplaceAll(strings.TrimPrefix(key, u.o.envPrefix), "_", "."))
+		k := strings.TrimPrefix(key, u.o.envPrefix)
+		k = strings.ToLower(k)
+		k = strings.ReplaceAll(k, "__", "-") // BASE__URL => base-url
+		k = strings.ReplaceAll(k, "_", ".")  // SERVE_PORT => serve.port
 
 		if strings.Contains(value, " ") {
 			return k, strings.Split(value, " ")
