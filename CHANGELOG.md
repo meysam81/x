@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.3.1](https://github.com/meysam81/x/compare/v1.3.0...v1.3.1) (2025-05-25)
+
+
+### Bug Fixes
+
+* **config:** add dash handling to env loader ([0f641d8](https://github.com/meysam81/x/commit/0f641d88aa8439ee603e5d30c9dbceb68dffccb1))
+
 ## [1.3.0](https://github.com/meysam81/x/compare/v1.2.1...v1.3.0) (2025-05-24)
 
 
