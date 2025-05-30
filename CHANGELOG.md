@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.4.0](https://github.com/meysam81/x/compare/v1.3.1...v1.4.0) (2025-05-30)
+
+
+### Features
+
+* **logging:** add http middleware ([d4718a6](https://github.com/meysam81/x/commit/d4718a68a5d575ae8b240a72287b775241c9b53c))
+
 ## [1.3.1](https://github.com/meysam81/x/compare/v1.3.0...v1.3.1) (2025-05-25)
 
 
