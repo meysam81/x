@@ -26,6 +26,7 @@ const (
 type options struct {
 	logLevel    LogLevel
 	coloredLogs bool
+	partsOrder  []string
 }
 
 func WithLogLevel(level LogLevel) func(*options) {
@@ -37,6 +38,12 @@ func WithLogLevel(level LogLevel) func(*options) {
 func WithColors() func(*options) {
 	return func(o *options) {
 		o.coloredLogs = true
+	}
+}
+
+func WithPartsOrder(p []string) func(*options) {
+	return func(o *options) {
+		o.partsOrder = p
 	}
 }
 
@@ -57,6 +64,7 @@ func NewLogger(opts ...func(*options)) Logger {
 	o := &options{
 		logLevel:    INFO,
 		coloredLogs: false,
+		partsOrder:  []string{},
 	}
 
 	for _, opt := range opts {
@@ -64,12 +72,7 @@ func NewLogger(opts ...func(*options)) Logger {
 	}
 	zerolog.SetGlobalLevel(detectLogLevel(o.logLevel))
 
-	var writer io.Writer
-	if o.coloredLogs {
-		writer = zerolog.ConsoleWriter{Out: os.Stderr}
-	} else {
-		writer = os.Stderr
-	}
+	var writer io.Writer = zerolog.ConsoleWriter{Out: os.Stderr, NoColor: !o.coloredLogs, PartsOrder: o.partsOrder}
 	writer = diode.NewWriter(writer, 1000, 0, func(missed int) {
 		log.Printf("Dropped %d messages", missed)
 	})
