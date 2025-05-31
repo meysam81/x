@@ -57,7 +57,7 @@ func detectLogLevel(level LogLevel) zerolog.Level {
 	}[level]
 }
 
-func NewLogger(opts ...func(*options)) Logger {
+func NewLogger(opts ...func(*options)) *Logger {
 	zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
 	zerolog.ErrorStackMarshaler = pkgerrors.MarshalStack
 
@@ -77,5 +77,6 @@ func NewLogger(opts ...func(*options)) Logger {
 		log.Printf("Dropped %d messages", missed)
 	})
 
-	return zerolog.New(writer).With().Caller().Timestamp().Logger()
+	l := zerolog.New(writer).With().Caller().Timestamp().Logger()
+	return &l
 }
