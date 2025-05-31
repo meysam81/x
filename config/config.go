@@ -117,11 +117,11 @@ func NewConfig(opts ...func(*options)) (*Config, error) {
 		}
 	}
 
-	err := k.Load(env.ProviderWithValue(o.envPrefix, ".", func(key, value string) (string, interface{}) {
+	err := k.Load(env.ProviderWithValue(o.envPrefix, o.delimiter, func(key, value string) (string, interface{}) {
 		k := strings.TrimPrefix(key, o.envPrefix)
 		k = strings.ToLower(k)
-		k = strings.ReplaceAll(k, "__", "-") // BASE__URL => base-url
-		k = strings.ReplaceAll(k, "_", ".")  // SERVE_PORT => serve.port
+		k = strings.ReplaceAll(k, "__", "-")        // BASE__URL => base-url
+		k = strings.ReplaceAll(k, "_", o.delimiter) // SERVE_PORT => serve.port
 
 		if strings.Contains(value, " ") {
 			return k, strings.Split(value, " ")
