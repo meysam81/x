@@ -1,5 +1,20 @@
 # Changelog
 
+## [1.5.0](https://github.com/meysam81/x/compare/v1.4.0...v1.5.0) (2025-05-31)
+
+
+### Features
+
+* **chimux:** provide chi router with logging and recovery middleware ([c4dfd68](https://github.com/meysam81/x/commit/c4dfd680ca1d8503ff52570c0f3720c48dcada38))
+* **config:** allow providing defaults in constructor ([14dd775](https://github.com/meysam81/x/commit/14dd775e360c85d39c589be7eaa38796e2154207))
+* **logging:** return a pointer to the logger instead ([b663d33](https://github.com/meysam81/x/commit/b663d33489f7f84bff1dc8c024a89c43504da1bb))
+
+
+### Bug Fixes
+
+* **config:** comply to the api and overridden options ([951b99b](https://github.com/meysam81/x/commit/951b99ba13f7659b354d5eb880c79ae49921c1a8))
+* **gin:** make linter happy ([bde3c78](https://github.com/meysam81/x/commit/bde3c784c1468f78c57465e5ce3a2396abe7c2f9))
+
 ## [1.4.0](https://github.com/meysam81/x/compare/v1.3.1...v1.4.0) (2025-05-30)
 
 
