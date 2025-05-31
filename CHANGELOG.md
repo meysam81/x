@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.7.0](https://github.com/meysam81/x/compare/v1.6.0...v1.7.0) (2025-05-31)
+
+
+### Features
+
+* **chimux:** provide health and metrics endpoint by default ([65b6e85](https://github.com/meysam81/x/commit/65b6e85aa0dd10f608c078bcad7a9cdd32dcf981))
+
 ## [1.6.0](https://github.com/meysam81/x/compare/v1.5.0...v1.6.0) (2025-05-31)
 
 
