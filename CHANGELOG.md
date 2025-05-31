@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.6.0](https://github.com/meysam81/x/compare/v1.5.0...v1.6.0) (2025-05-31)
+
+
+### Features
+
+* **config:** allow unmarshaling to user-provided interface ([9dadf61](https://github.com/meysam81/x/commit/9dadf6183485127d63c29d2fd10013071a382d29))
+
+
+### Bug Fixes
+
+* remove deprecated chi version ([66d93aa](https://github.com/meysam81/x/commit/66d93aa239df3fe15f9fe1fa0d683bd97cffe1cc))
+
 ## [1.5.0](https://github.com/meysam81/x/compare/v1.4.0...v1.5.0) (2025-05-31)
 
 
