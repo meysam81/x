@@ -27,7 +27,7 @@ func logWithHeader(logger *logging.Logger) func(next http.Handler) http.Handler 
 
 			var headers []string
 			for header, values := range r.Header {
-				headers = append(headers, fmt.Sprintf("%s: %s", header, strings.Join(values, "; ")))
+				headers = append(headers, fmt.Sprintf("%s: %s", strings.ToLower(header), strings.Join(values, "; ")))
 			}
 
 			logger.Info().
