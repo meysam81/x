@@ -3,6 +3,8 @@ package chimux
 import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
+
 	"github.com/meysam81/x/logging"
 )
 
@@ -11,6 +13,9 @@ type options struct {
 	disableLoggingMiddleware  bool
 	logger                    *logging.Logger
 	disableLogHeaders         bool
+	disableMetrics            bool
+	disableHealthz            bool
+	healthzEndpoint           string
 }
 
 func WithDisableRecoveryMiddlware() func(*options) {
@@ -37,11 +42,31 @@ func WithDisableLogHeaders() func(*options) {
 	}
 }
 
+func WithoutMetrics() func(*options) {
+	return func(o *options) {
+		o.disableMetrics = true
+	}
+}
+
+func WithoutHealthEndpoint() func(*options) {
+	return func(o *options) {
+		o.disableHealthz = true
+	}
+}
+
+func WithHealthEndpoint(pattern string) func(*options) {
+	return func(o *options) {
+		o.healthzEndpoint = pattern
+	}
+}
+
 func NewChi(opts ...func(*options)) *chi.Mux {
 	o := &options{
 		disableRecoveryMiddleware: false,
 		disableLoggingMiddleware:  false,
 		disableLogHeaders:         false,
+		disableMetrics:            false,
+		healthzEndpoint:           "/healthz",
 	}
 
 	for _, opt := range opts {
@@ -60,6 +85,17 @@ func NewChi(opts ...func(*options)) *chi.Mux {
 
 	if !o.disableRecoveryMiddleware {
 		r.Use(middleware.Recoverer)
+	}
+
+	if !o.disableMetrics {
+		m := newMetrics()
+		r.Use(m.middleware)
+		r.Get("/metrics", promhttp.Handler().ServeHTTP)
+
+	}
+
+	if !o.disableHealthz {
+		r.Get(o.healthzEndpoint, healthCheck)
 	}
 
 	return r
