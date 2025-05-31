@@ -21,9 +21,12 @@ type options struct {
 	envPrefix        string
 	defaultValues    map[string]interface{}
 	defaultProvided  bool
+	unmarshalTo      interface{}
+	unmarshalConf    *UnmarshalConf
 }
 
 type Config = koanf.Koanf
+type UnmarshalConf = koanf.UnmarshalConf
 
 func WithDelimiter(delim string) func(*options) {
 	return func(o *options) {
@@ -68,12 +71,26 @@ func WithDefaults(defaults map[string]interface{}) func(*options) {
 	}
 }
 
+func WithUnmarshalTo(obj interface{}) func(*options) {
+	return func(o *options) {
+		o.unmarshalTo = obj
+	}
+}
+
+func WithUnmarshalConf(c *UnmarshalConf) func(*options) {
+	return func(o *options) {
+		o.unmarshalConf = c
+	}
+}
+
 func NewConfig(opts ...func(*options)) (*Config, error) {
 	o := &options{
 		delimiter:        ".",
 		jsonWatchEnabled: true,
 		yamlWatchEnabled: true,
 		defaultProvided:  false,
+		unmarshalTo:      nil,
+		unmarshalConf:    &UnmarshalConf{Tag: "koanf", FlatPaths: true},
 	}
 
 	for _, opt := range opts {
@@ -132,6 +149,13 @@ func NewConfig(opts ...func(*options)) (*Config, error) {
 
 	if err != nil {
 		return nil, err
+	}
+
+	if o.unmarshalTo != nil {
+		err := k.UnmarshalWithConf("", o.unmarshalTo, *o.unmarshalConf)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	return k, nil
