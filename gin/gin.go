@@ -64,11 +64,11 @@ func NewGin(opts ...func(*options)) *Gin {
 	}
 
 	if !o.disableNullifyTrustedProxy {
-		g.SetTrustedProxies(nil)
+		_ = g.SetTrustedProxies(nil)
 	}
 
-	gin.SetMode(gin.ReleaseMode)
 	if !o.disableSetReleaseMode {
+		gin.SetMode(gin.ReleaseMode)
 	}
 
 	if !o.keepDefaultWriter {
