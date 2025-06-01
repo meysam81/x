@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.7.1](https://github.com/meysam81/x/compare/v1.7.0...v1.7.1) (2025-05-31)
+
+
+### Bug Fixes
+
+* **chimux:** lower header key in logging ([b1eb30f](https://github.com/meysam81/x/commit/b1eb30f0323cfc4dc6cc81a37839c673d8aeebd0))
+
 ## [1.7.0](https://github.com/meysam81/x/compare/v1.6.0...v1.7.0) (2025-05-31)
 
 
