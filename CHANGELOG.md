@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.8.0](https://github.com/meysam81/x/compare/v1.7.1...v1.8.0) (2025-06-03)
+
+
+### Features
+
+* **chimux:** disable healthcheck logging by default ([98c1d06](https://github.com/meysam81/x/commit/98c1d06b27c2a6b7941afbfb9c36c1f5e2a60549))
+
 ## [1.7.1](https://github.com/meysam81/x/compare/v1.7.0...v1.7.1) (2025-05-31)
 
 
