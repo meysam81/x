@@ -13,6 +13,7 @@ type options struct {
 	disableLoggingMiddleware  bool
 	logger                    *logging.Logger
 	disableLogHeaders         bool
+	enableHealthzLoging       bool
 	disableMetrics            bool
 	disableHealthz            bool
 	healthzEndpoint           string
@@ -60,6 +61,12 @@ func WithHealthEndpoint(pattern string) func(*options) {
 	}
 }
 
+func WithLogHealthRequests() func(*options) {
+	return func(o *options) {
+		o.enableHealthzLoging = true
+	}
+}
+
 func NewChi(opts ...func(*options)) *chi.Mux {
 	o := &options{
 		disableRecoveryMiddleware: false,
@@ -80,7 +87,7 @@ func NewChi(opts ...func(*options)) *chi.Mux {
 	}
 
 	if !o.disableLoggingMiddleware {
-		r.Use(loggingMiddleware(o.logger, !o.disableLogHeaders))
+		r.Use(loggingMiddleware(o))
 	}
 
 	if !o.disableRecoveryMiddleware {

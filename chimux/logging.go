@@ -7,10 +7,9 @@ import (
 	"time"
 
 	"github.com/go-chi/chi/v5/middleware"
-	"github.com/meysam81/x/logging"
 )
 
-func logWithHeader(logger *logging.Logger) func(next http.Handler) http.Handler {
+func logWithHeader(o *options) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			start := time.Now()
@@ -30,7 +29,11 @@ func logWithHeader(logger *logging.Logger) func(next http.Handler) http.Handler 
 				headers = append(headers, fmt.Sprintf("%s: %s", strings.ToLower(header), strings.Join(values, "; ")))
 			}
 
-			logger.Info().
+			if !o.enableHealthzLoging && r.URL.Path == o.healthzEndpoint {
+				return
+			}
+
+			o.logger.Info().
 				Int("bytes", ww.BytesWritten()).
 				Str("duration", time.Since(start).String()).
 				Str("method", r.Method).
@@ -43,7 +46,7 @@ func logWithHeader(logger *logging.Logger) func(next http.Handler) http.Handler 
 	}
 }
 
-func logWithoutHeader(logger *logging.Logger) func(next http.Handler) http.Handler {
+func logWithoutHeader(o *options) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			start := time.Now()
@@ -58,7 +61,11 @@ func logWithoutHeader(logger *logging.Logger) func(next http.Handler) http.Handl
 				clientAddr = r.Header.Get("x-real-ip")
 			}
 
-			logger.Info().
+			if !o.enableHealthzLoging && r.URL.Path == o.healthzEndpoint {
+				return
+			}
+
+			o.logger.Info().
 				Int("bytes", ww.BytesWritten()).
 				Str("duration", time.Since(start).String()).
 				Str("method", r.Method).
@@ -71,10 +78,10 @@ func logWithoutHeader(logger *logging.Logger) func(next http.Handler) http.Handl
 	}
 }
 
-func loggingMiddleware(logger *logging.Logger, logHeaders bool) func(next http.Handler) http.Handler {
-	if logHeaders {
-		return logWithHeader(logger)
+func loggingMiddleware(o *options) func(next http.Handler) http.Handler {
+	if !o.disableLogHeaders {
+		return logWithHeader(o)
 	}
 
-	return logWithoutHeader(logger)
+	return logWithoutHeader(o)
 }

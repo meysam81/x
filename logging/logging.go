@@ -70,13 +70,13 @@ func NewLogger(opts ...func(*options)) *Logger {
 	for _, opt := range opts {
 		opt(o)
 	}
-	zerolog.SetGlobalLevel(detectLogLevel(o.logLevel))
+	level := detectLogLevel(o.logLevel)
 
 	var writer io.Writer = zerolog.ConsoleWriter{Out: os.Stderr, NoColor: !o.coloredLogs, PartsOrder: o.partsOrder}
 	writer = diode.NewWriter(writer, 1000, 0, func(missed int) {
 		log.Printf("Dropped %d messages", missed)
 	})
 
-	l := zerolog.New(writer).With().Caller().Timestamp().Logger()
+	l := zerolog.New(writer).With().Caller().Timestamp().Logger().Level(level)
 	return &l
 }
