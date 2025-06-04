@@ -83,7 +83,8 @@ func NewChi(opts ...func(*options)) *chi.Mux {
 	r := chi.NewRouter()
 
 	if o.logger == nil && !o.disableLoggingMiddleware {
-		o.logger = logging.NewLogger()
+		l := logging.NewLogger()
+		o.logger = &l
 	}
 
 	if !o.disableLoggingMiddleware {

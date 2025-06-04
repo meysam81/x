@@ -1,12 +1,10 @@
 package logging
 
 import (
-	"io"
-	"log"
 	"os"
+	"time"
 
 	"github.com/rs/zerolog"
-	"github.com/rs/zerolog/diode"
 	"github.com/rs/zerolog/pkgerrors"
 )
 
@@ -27,6 +25,7 @@ type options struct {
 	logLevel    LogLevel
 	coloredLogs bool
 	partsOrder  []string
+	timeFormat  string
 }
 
 func WithLogLevel(level LogLevel) func(*options) {
@@ -47,6 +46,12 @@ func WithPartsOrder(p []string) func(*options) {
 	}
 }
 
+func WithTimeFormat(t string) func(*options) {
+	return func(o *options) {
+		o.timeFormat = t
+	}
+}
+
 func detectLogLevel(level LogLevel) zerolog.Level {
 	return map[LogLevel]zerolog.Level{
 		DEBUG:    zerolog.DebugLevel,
@@ -57,14 +62,12 @@ func detectLogLevel(level LogLevel) zerolog.Level {
 	}[level]
 }
 
-func NewLogger(opts ...func(*options)) *Logger {
-	zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
-	zerolog.ErrorStackMarshaler = pkgerrors.MarshalStack
-
+func NewLogger(opts ...func(*options)) Logger {
 	o := &options{
 		logLevel:    INFO,
 		coloredLogs: false,
 		partsOrder:  []string{},
+		timeFormat:  time.RFC3339,
 	}
 
 	for _, opt := range opts {
@@ -72,11 +75,8 @@ func NewLogger(opts ...func(*options)) *Logger {
 	}
 	level := detectLogLevel(o.logLevel)
 
-	var writer io.Writer = zerolog.ConsoleWriter{Out: os.Stderr, NoColor: !o.coloredLogs, PartsOrder: o.partsOrder}
-	writer = diode.NewWriter(writer, 1000, 0, func(missed int) {
-		log.Printf("Dropped %d messages", missed)
-	})
+	zerolog.TimeFieldFormat = o.timeFormat
+	zerolog.ErrorStackMarshaler = pkgerrors.MarshalStack
 
-	l := zerolog.New(writer).With().Caller().Timestamp().Logger().Level(level)
-	return &l
+	return zerolog.New(zerolog.ConsoleWriter{Out: os.Stderr, NoColor: !o.coloredLogs}).Level(level).With().Caller().Timestamp().Logger()
 }
