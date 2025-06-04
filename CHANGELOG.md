@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.8.1](https://github.com/meysam81/x/compare/v1.8.0...v1.8.1) (2025-06-04)
+
+
+### Bug Fixes
+
+* **logging:** return non-pointer logger with caller attached ([2dc2f1d](https://github.com/meysam81/x/commit/2dc2f1d21f64dbd2178815b0d528790528e38fad))
+
 ## [1.8.0](https://github.com/meysam81/x/compare/v1.7.1...v1.8.0) (2025-06-03)
 
 
