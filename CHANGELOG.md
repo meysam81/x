@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.8.2](https://github.com/meysam81/x/compare/v1.8.1...v1.8.2) (2025-06-15)
+
+
+### Bug Fixes
+
+* **logging:** pass timeformat to the console writer ([a3a879a](https://github.com/meysam81/x/commit/a3a879a15c7a2bddb018b33a876016e080d3cf4f))
+
 ## [1.8.1](https://github.com/meysam81/x/compare/v1.8.0...v1.8.1) (2025-06-04)
 
 
