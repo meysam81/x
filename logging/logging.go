@@ -78,5 +78,5 @@ func NewLogger(opts ...func(*options)) Logger {
 	zerolog.TimeFieldFormat = o.timeFormat
 	zerolog.ErrorStackMarshaler = pkgerrors.MarshalStack
 
-	return zerolog.New(zerolog.ConsoleWriter{Out: os.Stderr, NoColor: !o.coloredLogs}).Level(level).With().Caller().Timestamp().Logger()
+	return zerolog.New(zerolog.ConsoleWriter{Out: os.Stderr, NoColor: !o.coloredLogs, TimeFormat: o.timeFormat}).Level(level).With().Caller().Timestamp().Logger()
 }
