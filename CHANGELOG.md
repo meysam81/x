@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.9.0](https://github.com/meysam81/x/compare/v1.8.2...v1.9.0) (2025-06-22)
+
+
+### Features
+
+* add ratelimit lib ([d369d6e](https://github.com/meysam81/x/commit/d369d6ea128a225de14d542c90c3e39680a108f6))
+
 ## [1.8.2](https://github.com/meysam81/x/compare/v1.8.1...v1.8.2) (2025-06-15)
 
 
