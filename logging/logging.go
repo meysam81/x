@@ -1,7 +1,29 @@
+// Package logging provides a configurable logger based on zerolog with options for log level,
+// colored output, custom parts order, and time format.
+//
+// LogLevel represents the severity of the log message.
+// Accepted values for log level (case-insensitive):
+//   - "debug"
+//   - "info"
+//   - "warn"
+//   - "error"
+//   - "critical"
+//
+// Invalid log level values will be silently ignored and the default level will be used.
+//
+// Options can be set using functional options:
+//   - WithLogLevel(level string): sets the log level. Accepted values are listed above.
+//   - WithColors(): enables colored log output.
+//   - WithPartsOrder(p []string): sets the order of log parts (fields).
+//   - WithTimeFormat(t string): sets the time format for log timestamps.
+//
+// NewLogger(opts ...func(*options)) Logger creates a new logger instance with the provided options.
+// If an option is not set, a default value will be used.
 package logging
 
 import (
 	"os"
+	"strings"
 	"time"
 
 	"github.com/rs/zerolog"
@@ -22,15 +44,24 @@ const (
 )
 
 type options struct {
-	logLevel    LogLevel
+	logLevel    zerolog.Level
 	coloredLogs bool
 	partsOrder  []string
 	timeFormat  string
 }
 
-func WithLogLevel(level LogLevel) func(*options) {
+func WithLogLevel(level string) func(*options) {
 	return func(o *options) {
-		o.logLevel = level
+		l := strings.ToLower(level)
+		if logLevel, ok := map[string]zerolog.Level{
+			"debug":    zerolog.DebugLevel,
+			"info":     zerolog.InfoLevel,
+			"warn":     zerolog.WarnLevel,
+			"error":    zerolog.ErrorLevel,
+			"critical": zerolog.FatalLevel,
+		}[l]; ok {
+			o.logLevel = logLevel
+		}
 	}
 }
 
@@ -52,19 +83,9 @@ func WithTimeFormat(t string) func(*options) {
 	}
 }
 
-func detectLogLevel(level LogLevel) zerolog.Level {
-	return map[LogLevel]zerolog.Level{
-		DEBUG:    zerolog.DebugLevel,
-		INFO:     zerolog.InfoLevel,
-		WARN:     zerolog.WarnLevel,
-		ERROR:    zerolog.ErrorLevel,
-		CRITICAL: zerolog.FatalLevel,
-	}[level]
-}
-
 func NewLogger(opts ...func(*options)) Logger {
 	o := &options{
-		logLevel:    INFO,
+		logLevel:    zerolog.InfoLevel,
 		coloredLogs: false,
 		partsOrder:  []string{},
 		timeFormat:  time.RFC3339,
@@ -73,10 +94,8 @@ func NewLogger(opts ...func(*options)) Logger {
 	for _, opt := range opts {
 		opt(o)
 	}
-	level := detectLogLevel(o.logLevel)
-
 	zerolog.TimeFieldFormat = o.timeFormat
 	zerolog.ErrorStackMarshaler = pkgerrors.MarshalStack
 
-	return zerolog.New(zerolog.ConsoleWriter{Out: os.Stderr, NoColor: !o.coloredLogs, TimeFormat: o.timeFormat}).Level(level).With().Caller().Timestamp().Logger()
+	return zerolog.New(zerolog.ConsoleWriter{Out: os.Stderr, NoColor: !o.coloredLogs, TimeFormat: o.timeFormat}).Level(o.logLevel).With().Caller().Timestamp().Logger()
 }
