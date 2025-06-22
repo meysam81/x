@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.9.1](https://github.com/meysam81/x/compare/v1.9.0...v1.9.1) (2025-06-22)
+
+
+### Bug Fixes
+
+* simplify log level argument ([ac6ca0a](https://github.com/meysam81/x/commit/ac6ca0aac8ce7dedef538a847be98f9a64bd6093))
+
 ## [1.9.0](https://github.com/meysam81/x/compare/v1.8.2...v1.9.0) (2025-06-22)
 
 
