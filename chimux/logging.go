@@ -9,7 +9,21 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 )
 
-func logWithHeader(o *options) func(next http.Handler) http.Handler {
+type logRequest struct{ o *options }
+
+func (l *logRequest) shouldSkip(r *http.Request) bool {
+	if !l.o.enableHealthzLoging && r.URL.Path == l.o.healthzEndpoint {
+		return true
+	}
+
+	if !l.o.enableMetricsLoging && r.URL.Path == l.o.metricsEndpoint {
+		return true
+	}
+
+	return false
+}
+
+func (l *logRequest) logWithHeader() func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			start := time.Now()
@@ -29,11 +43,11 @@ func logWithHeader(o *options) func(next http.Handler) http.Handler {
 				headers = append(headers, fmt.Sprintf("%s: %s", strings.ToLower(header), strings.Join(values, "; ")))
 			}
 
-			if !o.enableHealthzLoging && r.URL.Path == o.healthzEndpoint {
+			if l.shouldSkip(r) {
 				return
 			}
 
-			o.logger.Info().
+			l.o.logger.Info().
 				Int("bytes", ww.BytesWritten()).
 				Str("duration", time.Since(start).String()).
 				Str("method", r.Method).
@@ -46,7 +60,7 @@ func logWithHeader(o *options) func(next http.Handler) http.Handler {
 	}
 }
 
-func logWithoutHeader(o *options) func(next http.Handler) http.Handler {
+func (l *logRequest) logWithoutHeader() func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			start := time.Now()
@@ -61,11 +75,11 @@ func logWithoutHeader(o *options) func(next http.Handler) http.Handler {
 				clientAddr = r.Header.Get("x-real-ip")
 			}
 
-			if !o.enableHealthzLoging && r.URL.Path == o.healthzEndpoint {
+			if l.shouldSkip(r) {
 				return
 			}
 
-			o.logger.Info().
+			l.o.logger.Info().
 				Int("bytes", ww.BytesWritten()).
 				Str("duration", time.Since(start).String()).
 				Str("method", r.Method).
@@ -79,9 +93,11 @@ func logWithoutHeader(o *options) func(next http.Handler) http.Handler {
 }
 
 func loggingMiddleware(o *options) func(next http.Handler) http.Handler {
+	l := &logRequest{}
+
 	if !o.disableLogHeaders {
-		return logWithHeader(o)
+		return l.logWithHeader()
 	}
 
-	return logWithoutHeader(o)
+	return l.logWithoutHeader()
 }
