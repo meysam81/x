@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.9.2](https://github.com/meysam81/x/compare/v1.9.1...v1.9.2) (2025-06-23)
+
+
+### Bug Fixes
+
+* do not log metrics requests ([43539f6](https://github.com/meysam81/x/commit/43539f6231c72607327d156ea0ddc7a3194994a3))
+
 ## [1.9.1](https://github.com/meysam81/x/compare/v1.9.0...v1.9.1) (2025-06-22)
 
 
