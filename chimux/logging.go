@@ -23,6 +23,29 @@ func (l *logRequest) shouldSkip(r *http.Request) bool {
 	return false
 }
 
+func (l *logRequest) isSensitiveHeader(header string) bool {
+	sensitiveHeaders := []string{
+		"authorization",
+		"cookie",
+		"set-cookie",
+		"x-api-key",
+		"x-auth-token",
+		"x-access-token",
+		"authentication",
+		"proxy-authorization",
+	}
+
+	headerLower := strings.ToLower(header)
+	for _, sensitive := range sensitiveHeaders {
+		if headerLower == sensitive {
+			return true
+		}
+	}
+	return false
+}
+
+const MASK = "TRUNCATED"
+
 func (l *logRequest) logWithHeader() func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -40,7 +63,13 @@ func (l *logRequest) logWithHeader() func(next http.Handler) http.Handler {
 
 			var headers []string
 			for header, values := range r.Header {
-				headers = append(headers, fmt.Sprintf("%s: %s", strings.ToLower(header), strings.Join(values, "; ")))
+				var valueStr string
+				if l.isSensitiveHeader(header) {
+					valueStr = MASK
+				} else {
+					valueStr = strings.Join(values, "; ")
+				}
+				headers = append(headers, fmt.Sprintf("%s: %s", strings.ToLower(header), valueStr))
 			}
 
 			if l.shouldSkip(r) {
