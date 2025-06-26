@@ -23,7 +23,7 @@ func (l *logRequest) shouldSkip(r *http.Request) bool {
 	return false
 }
 
-func (l *logRequest) isSensitiveHeader(header string) bool {
+func isSensitiveHeader(header string) bool {
 	sensitiveHeaders := []string{
 		"authorization",
 		"cookie",
@@ -64,7 +64,7 @@ func (l *logRequest) logWithHeader() func(next http.Handler) http.Handler {
 			var headers []string
 			for header, values := range r.Header {
 				var valueStr string
-				if l.isSensitiveHeader(header) {
+				if isSensitiveHeader(header) {
 					valueStr = MASK
 				} else {
 					valueStr = strings.Join(values, "; ")
