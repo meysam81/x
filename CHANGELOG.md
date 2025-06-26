@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.9.3](https://github.com/meysam81/x/compare/v1.9.2...v1.9.3) (2025-06-26)
+
+
+### Bug Fixes
+
+* simplify log colors with enabled input ([a39087f](https://github.com/meysam81/x/commit/a39087f4d4796e0d213543949076c1b419e1a3eb))
+
 ## [1.9.2](https://github.com/meysam81/x/compare/v1.9.1...v1.9.2) (2025-06-23)
 
 
