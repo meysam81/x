@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.9.4](https://github.com/meysam81/x/compare/v1.9.3...v1.9.4) (2025-06-26)
+
+
+### Bug Fixes
+
+* **chimux:** mast sensitive headers in logs ([b0310a3](https://github.com/meysam81/x/commit/b0310a390a99aec937f07c9fbd6a7111d12596f9))
+
 ## [1.9.3](https://github.com/meysam81/x/compare/v1.9.2...v1.9.3) (2025-06-26)
 
 
