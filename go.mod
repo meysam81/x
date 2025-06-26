@@ -13,7 +13,7 @@ require (
 	github.com/knadh/koanf/v2 v2.2.1
 	github.com/mattn/go-sqlite3 v1.14.28
 	github.com/prometheus/client_golang v1.22.0
-	github.com/redis/go-redis/v9 v9.10.0
+	github.com/redis/go-redis/v9 v9.11.0
 	github.com/rs/zerolog v1.34.0
 	modernc.org/sqlite v1.38.0
 )
