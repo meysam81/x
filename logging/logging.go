@@ -65,9 +65,9 @@ func WithLogLevel(level string) func(*options) {
 	}
 }
 
-func WithColors() func(*options) {
+func WithColorsEnabled(enabled bool) func(*options) {
 	return func(o *options) {
-		o.coloredLogs = true
+		o.coloredLogs = enabled
 	}
 }
 
