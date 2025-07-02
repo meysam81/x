@@ -13,8 +13,8 @@ type options struct {
 	disableLoggingMiddleware  bool
 	logger                    *logging.Logger
 	disableLogHeaders         bool
-	disableMetrics            bool
-	disableHealthz            bool
+	enableMetrics             bool
+	enableHealthz             bool
 
 	enableHealthzLoging bool
 	healthzEndpoint     string
@@ -47,15 +47,15 @@ func WithDisableLogHeaders() func(*options) {
 	}
 }
 
-func WithoutMetrics() func(*options) {
+func WithMetrics() func(*options) {
 	return func(o *options) {
-		o.disableMetrics = true
+		o.enableMetrics = true
 	}
 }
 
-func WithoutHealthEndpoint() func(*options) {
+func WithHealthz() func(*options) {
 	return func(o *options) {
-		o.disableHealthz = true
+		o.enableHealthz = true
 	}
 }
 
@@ -82,7 +82,7 @@ func NewChi(opts ...func(*options)) *chi.Mux {
 		disableRecoveryMiddleware: false,
 		disableLoggingMiddleware:  false,
 		disableLogHeaders:         false,
-		disableMetrics:            false,
+		enableMetrics:             false,
 		healthzEndpoint:           "/healthz",
 		metricsEndpoint:           "/metrics",
 	}
@@ -106,14 +106,13 @@ func NewChi(opts ...func(*options)) *chi.Mux {
 		r.Use(middleware.Recoverer)
 	}
 
-	if !o.disableMetrics {
+	if o.enableMetrics {
 		m := newMetrics()
 		r.Use(m.middleware)
 		r.Get(o.metricsEndpoint, promhttp.Handler().ServeHTTP)
-
 	}
 
-	if !o.disableHealthz {
+	if o.enableHealthz {
 		r.Get(o.healthzEndpoint, healthCheck)
 	}
 
