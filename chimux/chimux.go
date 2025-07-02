@@ -10,7 +10,7 @@ import (
 
 type options struct {
 	disableRecoveryMiddleware bool
-	disableLoggingMiddleware  bool
+	enableLoggingMiddleware   bool
 	logger                    *logging.Logger
 	disableLogHeaders         bool
 	enableMetrics             bool
@@ -29,9 +29,9 @@ func WithDisableRecoveryMiddlware() func(*options) {
 	}
 }
 
-func WithDisableLoggingMiddleware() func(*options) {
+func WithLoggingMiddleware() func(*options) {
 	return func(o *options) {
-		o.disableLoggingMiddleware = true
+		o.enableLoggingMiddleware = true
 	}
 }
 
@@ -80,7 +80,7 @@ func WithLogHealthRequests() func(*options) {
 func NewChi(opts ...func(*options)) *chi.Mux {
 	o := &options{
 		disableRecoveryMiddleware: false,
-		disableLoggingMiddleware:  false,
+		enableLoggingMiddleware:   false,
 		disableLogHeaders:         false,
 		enableMetrics:             false,
 		healthzEndpoint:           "/healthz",
@@ -93,12 +93,12 @@ func NewChi(opts ...func(*options)) *chi.Mux {
 
 	r := chi.NewRouter()
 
-	if o.logger == nil && !o.disableLoggingMiddleware {
-		l := logging.NewLogger()
-		o.logger = &l
-	}
+	if o.enableLoggingMiddleware {
+		if o.logger == nil {
+			l := logging.NewLogger()
+			o.logger = &l
+		}
 
-	if !o.disableLoggingMiddleware {
 		r.Use(loggingMiddleware(o))
 	}
 
