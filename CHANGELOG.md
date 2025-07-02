@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.9.4](https://github.com/meysam81/x/compare/v1.9.3...v1.9.4) (2025-07-02)
+
+
+### Bug Fixes
+
+* **chimux:** disable logging middleware by default ([02a22ed](https://github.com/meysam81/x/commit/02a22edb14b2f1765a0478965781c8183af2c989))
+* **chimux:** mast sensitive headers in logs ([b0310a3](https://github.com/meysam81/x/commit/b0310a390a99aec937f07c9fbd6a7111d12596f9))
+* **deps:** update module github.com/redis/go-redis/v9 to v9.11.0 ([#27](https://github.com/meysam81/x/issues/27)) ([938c02f](https://github.com/meysam81/x/commit/938c02f441d53008ca6c4854927b622c029dcc89))
+* **deps:** upgrade all libs ([2972918](https://github.com/meysam81/x/commit/29729184a718d04d87957c72eb30774bd9a5045a))
+* disable metrics and healthz by default ([d26693a](https://github.com/meysam81/x/commit/d26693a206f2a709f29e8a39cc2ecea3b00cffc0))
+* initialize log request with config ([c955ac4](https://github.com/meysam81/x/commit/c955ac4569a5ef02906b6c16973e50b160d7b2da))
+
 ## [1.9.3](https://github.com/meysam81/x/compare/v1.9.2...v1.9.3) (2025-06-26)
 
 
