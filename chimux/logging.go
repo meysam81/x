@@ -122,7 +122,7 @@ func (l *logRequest) logWithoutHeader() func(next http.Handler) http.Handler {
 }
 
 func loggingMiddleware(o *options) func(next http.Handler) http.Handler {
-	l := &logRequest{}
+	l := &logRequest{o}
 
 	if !o.disableLogHeaders {
 		return l.logWithHeader()
