@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.10.0](https://github.com/meysam81/x/compare/v1.9.4...v1.10.0) (2025-07-12)
+
+
+### Features
+
+* add OTEL tracing lib ([fbf3b80](https://github.com/meysam81/x/commit/fbf3b805c5ec63c02291187777cafaa98e1e0487))
+
+
+### Bug Fixes
+
+* **deps:** update module github.com/knadh/koanf/providers/env to v2 ([#30](https://github.com/meysam81/x/issues/30)) ([fb5a707](https://github.com/meysam81/x/commit/fb5a7079bf27b22e1d471a8940bcf6a52c024333))
+
 ## [1.9.4](https://github.com/meysam81/x/compare/v1.9.3...v1.9.4) (2025-07-02)
 
 
