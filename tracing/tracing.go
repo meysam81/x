@@ -4,6 +4,7 @@ import (
 	"context"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/meysam81/x/logging"
 
@@ -27,15 +28,15 @@ type TracingConfig struct {
 }
 
 type Tracer struct {
-	provider *sdktrace.TracerProvider
-	tracer   trace.Tracer
-	logger   *logging.Logger
-	config   *TracingConfig
+	Provider *sdktrace.TracerProvider
+	Tracer   trace.Tracer
+	Logger   *logging.Logger
+	Config   *TracingConfig
 }
 
 func NewTracer(ctx context.Context, config *TracingConfig, logger *logging.Logger) (*Tracer, error) {
 	if !config.Enabled {
-		return &Tracer{logger: logger}, nil
+		return &Tracer{Logger: logger}, nil
 	}
 
 	exporter, err := otlptracehttp.New(ctx,
@@ -82,33 +83,44 @@ func NewTracer(ctx context.Context, config *TracingConfig, logger *logging.Logge
 
 	tracer := provider.Tracer(config.ServiceName)
 
-	return &Tracer{
-		provider: provider,
-		tracer:   tracer,
-		logger:   logger,
-		config:   config,
-	}, nil
+	t := &Tracer{
+		Provider: provider,
+		Tracer:   tracer,
+		Logger:   logger,
+		Config:   config,
+	}
+
+	ctxT, cancelT := context.WithTimeout(context.Background(), 5*time.Second)
+	go func() {
+		defer cancelT()
+		<-ctx.Done()
+		if err := t.Shutdown(ctxT); err != nil {
+			logger.Error().Err(err).Msg("failed shutting down the tracer")
+		}
+	}()
+
+	return t, nil
 }
 
 func (t *Tracer) GetTracer() trace.Tracer {
-	if t.tracer == nil {
+	if t.Tracer == nil {
 		return otel.GetTracerProvider().Tracer("noop")
 	}
-	return t.tracer
+	return t.Tracer
 }
 
 func (t *Tracer) Shutdown(ctx context.Context) error {
-	if t.provider == nil {
+	if t.Provider == nil {
 		return nil
 	}
-	return t.provider.Shutdown(ctx)
+	return t.Provider.Shutdown(ctx)
 }
 
 func (t *Tracer) StartSpan(ctx context.Context, spanName string) (context.Context, trace.Span) {
-	if t.tracer == nil {
+	if t.Tracer == nil {
 		return ctx, trace.SpanFromContext(ctx)
 	}
-	return t.tracer.Start(ctx, spanName)
+	return t.Tracer.Start(ctx, spanName)
 }
 
 func (t *Tracer) DetachSpanFromContext(ctx context.Context) context.Context {
@@ -121,13 +133,13 @@ func (t *Tracer) DetachSpanFromContext(ctx context.Context) context.Context {
 
 func (t *Tracer) HTTPMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if t.tracer == nil {
+		if t.Tracer == nil {
 			next.ServeHTTP(w, r)
 			return
 		}
 
 		ctx := otel.GetTextMapPropagator().Extract(r.Context(), propagation.HeaderCarrier(r.Header))
-		ctx, span := t.tracer.Start(ctx, r.Method+" "+r.URL.Path, trace.WithSpanKind(trace.SpanKindServer))
+		ctx, span := t.Tracer.Start(ctx, r.Method+" "+r.URL.Path, trace.WithSpanKind(trace.SpanKindServer))
 		defer span.End()
 
 		ww := middleware.NewWrapResponseWriter(w, r.ProtoMajor)
@@ -138,7 +150,7 @@ func (t *Tracer) HTTPMiddleware(next http.Handler) http.Handler {
 		}()
 
 		span.SetAttributes(
-			semconv.ServiceName(t.config.ServiceName),
+			semconv.ServiceName(t.Config.ServiceName),
 			semconv.HTTPRequestMethodKey.String(r.Method),
 			semconv.HTTPRoute(r.URL.Path),
 			semconv.URLPath(r.URL.Path),
