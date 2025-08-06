@@ -15,8 +15,15 @@ type RateLimit struct {
 }
 
 type Result struct {
-	Total     int
-	Remaining int
+	Allowed   bool
+	Total     int64
+	Remaining int64
+
+	resetAt int64
+}
+
+func (r *Result) ResetAt() time.Time {
+	return time.Unix(0, r.resetAt)
 }
 
 // TokenBucket implements the token bucket rate limiting algorithm.
@@ -50,7 +57,7 @@ type Result struct {
 // Example: An API that allows 100 requests per minute but should handle
 // a user making 50 requests in the first 10 seconds, then being limited
 // to the refill rate afterward.
-func (config *RateLimit) TokenBucket(ctx context.Context, key string) bool {
+func (config *RateLimit) TokenBucket(ctx context.Context, key string) *Result {
 	key = "tb:" + key
 	now := time.Now().UnixNano()
 
@@ -64,20 +71,30 @@ func (config *RateLimit) TokenBucket(ctx context.Context, key string) bool {
 		last_refill = tonumber(last_refill) or now
 		local elapsed = now - last_refill
 		local new_tokens = math.min(capacity, tokens + (elapsed * rate / 1e9))
+		local allowed = 0
+		local remaining = new_tokens
+		local reset_at = now + ((capacity - new_tokens) / rate * 1e9)
 		if new_tokens >= 1 then
-			redis.call('HMSET', key, 'tokens', new_tokens - 1, 'last_refill', now)
+			allowed = 1
+			remaining = new_tokens - 1
+			redis.call('HMSET', key, 'tokens', remaining, 'last_refill', now)
 			redis.call('EXPIRE', key, math.ceil(capacity / rate))
-			return 1
 		end
-		return 0
+		return {allowed, capacity, math.floor(remaining), reset_at}
 	`
 
 	result, err := config.Redis.Eval(ctx, script, []string{key},
-		now, config.RefillRate, config.MaxRequests).Int()
+		now, config.RefillRate, config.MaxRequests).Int64Slice()
 	if err != nil {
-		return false
+		return &Result{Allowed: false, Total: int64(config.MaxRequests), Remaining: 0, resetAt: now}
 	}
-	return result == 1
+
+	return &Result{
+		Allowed:   result[0] == 1,
+		Total:     result[1],
+		Remaining: result[2],
+		resetAt:   result[3],
+	}
 }
 
 // LeakyBucket implements the leaky bucket rate limiting algorithm.
