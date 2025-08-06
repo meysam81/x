@@ -7,10 +7,16 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
-type Config struct {
-	MaxRequests int
-	Window      time.Duration
+type RateLimit struct {
 	Redis       *redis.Client
+	MaxRequests int
+	RefillRate  float32
+	Window      time.Duration
+}
+
+type Result struct {
+	Total     int
+	Remaining int
 }
 
 // TokenBucket implements the token bucket rate limiting algorithm.
@@ -44,7 +50,7 @@ type Config struct {
 // Example: An API that allows 100 requests per minute but should handle
 // a user making 50 requests in the first 10 seconds, then being limited
 // to the refill rate afterward.
-func (config *Config) TokenBucket(ctx context.Context, key string) bool {
+func (config *RateLimit) TokenBucket(ctx context.Context, key string) bool {
 	key = "tb:" + key
 	now := time.Now().UnixNano()
 
@@ -67,7 +73,7 @@ func (config *Config) TokenBucket(ctx context.Context, key string) bool {
 	`
 
 	result, err := config.Redis.Eval(ctx, script, []string{key},
-		now, config.MaxRequests, config.MaxRequests).Int()
+		now, config.RefillRate, config.MaxRequests).Int()
 	if err != nil {
 		return false
 	}
@@ -106,7 +112,7 @@ func (config *Config) TokenBucket(ctx context.Context, key string) bool {
 //
 // Example: A service that processes webhook events and can only handle
 // exactly 10 events per second without causing performance issues.
-func (config *Config) LeakyBucket(ctx context.Context, key string) bool {
+func (config *RateLimit) LeakyBucket(ctx context.Context, key string) bool {
 	key = "lb:" + key
 	now := time.Now().UnixNano()
 
@@ -168,7 +174,7 @@ func (config *Config) LeakyBucket(ctx context.Context, key string) bool {
 // Example: A premium API service that strictly allows 1000 requests per hour
 // per user, where the user cannot circumvent the limit by timing requests
 // around hourly boundaries.
-func (config *Config) SlidingWindow(ctx context.Context, key string) bool {
+func (config *RateLimit) SlidingWindow(ctx context.Context, key string) bool {
 	key = "sw:" + key
 	now := time.Now().UnixNano()
 	windowNanos := config.Window.Nanoseconds()
@@ -225,7 +231,7 @@ func (config *Config) SlidingWindow(ctx context.Context, key string) bool {
 //
 // Example: An API that allows 1000 requests per hour, resetting the counter
 // at the top of each hour (00:00, 01:00, 02:00, etc.).
-func (config *Config) FixedWindow(ctx context.Context, key string) bool {
+func (config *RateLimit) FixedWindow(ctx context.Context, key string) bool {
 	key = "fw:" + key
 	now := time.Now().UnixNano()
 	windowStart := (now / config.Window.Nanoseconds()) * config.Window.Nanoseconds()
@@ -285,7 +291,7 @@ func (config *Config) FixedWindow(ctx context.Context, key string) bool {
 // Example: An API that allows 100 requests per minute with smooth enforcement,
 // where a request at 10:30:30 considers requests from 09:29:30 to 10:30:30
 // using weighted calculations from two 1-minute windows.
-func (config *Config) SlidingWindowCounter(ctx context.Context, key string) bool {
+func (config *RateLimit) SlidingWindowCounter(ctx context.Context, key string) bool {
 	key = "swc:" + key
 	now := time.Now().UnixNano()
 	windowNanos := config.Window.Nanoseconds()
@@ -358,7 +364,7 @@ func (config *Config) SlidingWindowCounter(ctx context.Context, key string) bool
 // Example: A payment API deployed across multiple regions where rate limits
 // must be enforced globally - a user hitting the US endpoint shouldn't be
 // able to bypass limits by simultaneously hitting the EU endpoint.
-func (config *Config) DistributedSlidingWindow(ctx context.Context, key string, nodeID string) bool {
+func (config *RateLimit) DistributedSlidingWindow(ctx context.Context, key string, nodeID string) bool {
 	key = "dsw:" + key
 	now := time.Now().UnixNano()
 	windowNanos := config.Window.Nanoseconds()
