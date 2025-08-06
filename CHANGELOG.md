@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.11.0](https://github.com/meysam81/x/compare/v1.10.0...v1.11.0) (2025-08-06)
+
+
+### Features
+
+* add synthetic sleep test and benchmark test ([3646ec4](https://github.com/meysam81/x/commit/3646ec4c8cdfb5284e16d620e06f8dd83b2c98e9))
+* add test for ratelimit ([f0b5173](https://github.com/meysam81/x/commit/f0b51736c81d5706491513172a6904d1086542ea))
+
+
+### Bug Fixes
+
+* close trace on context signal ([56735ec](https://github.com/meysam81/x/commit/56735ecc094a1007b8e50848686d544451c525ce))
+
 ## [1.10.0](https://github.com/meysam81/x/compare/v1.9.4...v1.10.0) (2025-07-12)
 
 
