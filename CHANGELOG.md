@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.11.1](https://github.com/meysam81/x/compare/v1.11.0...v1.11.1) (2025-08-06)
+
+
+### Bug Fixes
+
+* **deps:** update module github.com/knadh/koanf/providers/env to v2 ([#33](https://github.com/meysam81/x/issues/33)) ([93b78ca](https://github.com/meysam81/x/commit/93b78ca49397c176fd51abf2899efd0f49363cf1))
+* do not pass otlp endpoint if none is provided ([3360a94](https://github.com/meysam81/x/commit/3360a94fff445d2529de6ab2afd2fb513862a0d0))
+
 ## [1.11.0](https://github.com/meysam81/x/compare/v1.10.0...v1.11.0) (2025-08-06)
 
 
