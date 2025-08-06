@@ -39,9 +39,13 @@ func NewTracer(ctx context.Context, config *TracingConfig, logger *logging.Logge
 		return &Tracer{Logger: logger}, nil
 	}
 
-	exporter, err := otlptracehttp.New(ctx,
-		otlptracehttp.WithEndpointURL(config.OTLPEndpointURL),
-	)
+	opts := []otlptracehttp.Option{}
+
+	if config.OTLPEndpointURL != "" {
+		otlptracehttp.WithEndpointURL(config.OTLPEndpointURL)
+	}
+
+	exporter, err := otlptracehttp.New(ctx, opts...)
 	if err != nil {
 		return nil, err
 	}
