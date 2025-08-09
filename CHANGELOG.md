@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.11.2](https://github.com/meysam81/x/compare/v1.11.1...v1.11.2) (2025-08-09)
+
+
+### Bug Fixes
+
+* allow overriding tracer shutdown timeout ([e631e6e](https://github.com/meysam81/x/commit/e631e6e35dc88cfa8163143eb476c5eb52936e2a))
+
 ## [1.11.1](https://github.com/meysam81/x/compare/v1.11.0...v1.11.1) (2025-08-06)
 
 
