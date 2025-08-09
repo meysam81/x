@@ -25,6 +25,8 @@ type TracingConfig struct {
 	OTLPEndpointURL string
 	Enabled         bool
 	ServerName      string
+
+	ShutdownTimeoutSec int
 }
 
 type Tracer struct {
@@ -94,7 +96,10 @@ func NewTracer(ctx context.Context, config *TracingConfig, logger *logging.Logge
 		Config:   config,
 	}
 
-	ctxT, cancelT := context.WithTimeout(context.Background(), 5*time.Second)
+	if config.ShutdownTimeoutSec == 0 {
+		config.ShutdownTimeoutSec = 10
+	}
+	ctxT, cancelT := context.WithTimeout(context.Background(), time.Duration(config.ShutdownTimeoutSec)*time.Second)
 	go func() {
 		defer cancelT()
 		<-ctx.Done()
