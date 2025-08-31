@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.12.2](https://github.com/meysam81/x/compare/v1.12.1...v1.12.2) (2025-08-31)
+
+
+### Bug Fixes
+
+* **CI:** release 1.12.2 ([3d24fcb](https://github.com/meysam81/x/commit/3d24fcb67c2d58a6b75a00f36d4742c49c39a60c))
+
 ## [1.12.1](https://github.com/meysam81/x/compare/v1.12.0...v1.12.1) (2025-08-31)
 
 
