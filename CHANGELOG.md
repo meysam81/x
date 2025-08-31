@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.12.0](https://github.com/meysam81/x/compare/v1.11.2...v1.12.0) (2025-08-31)
+
+
+### Features
+
+* add crypto lib ([4cd5aa3](https://github.com/meysam81/x/commit/4cd5aa3ee9cc64ffd17a97ff070667a0ec5b74c3))
+* add smtp lib ([585d94c](https://github.com/meysam81/x/commit/585d94c9eb2b31572529160cc547b5ca5a898eaa))
+
+
+### Bug Fixes
+
+* **chimux:** modify typo ([5e09188](https://github.com/meysam81/x/commit/5e09188986ae22531e5c3abfd1ac605aad08882d))
+
 ## [1.11.2](https://github.com/meysam81/x/compare/v1.11.1...v1.11.2) (2025-08-09)
 
 
