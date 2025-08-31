@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.12.1](https://github.com/meysam81/x/compare/v1.12.0...v1.12.1) (2025-08-31)
+
+
+### Bug Fixes
+
+* **crypto:** rename to avoid conflict with stdlib ([aa559c1](https://github.com/meysam81/x/commit/aa559c101bfd99ba12d4e769d6e1bf9024128315))
+
 ## [1.12.0](https://github.com/meysam81/x/compare/v1.11.2...v1.12.0) (2025-08-31)
 
 
