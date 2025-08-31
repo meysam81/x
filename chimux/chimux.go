@@ -19,8 +19,8 @@ type options struct {
 	enableHealthzLoging bool
 	healthzEndpoint     string
 
-	enableMetricsLoging bool
-	metricsEndpoint     string
+	enableMetricsLogging bool
+	metricsEndpoint      string
 }
 
 func WithDisableRecoveryMiddlware() func(*options) {

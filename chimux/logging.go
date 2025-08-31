@@ -16,7 +16,7 @@ func (l *logRequest) shouldSkip(r *http.Request) bool {
 		return true
 	}
 
-	if !l.o.enableMetricsLoging && r.URL.Path == l.o.metricsEndpoint {
+	if !l.o.enableMetricsLogging && r.URL.Path == l.o.metricsEndpoint {
 		return true
 	}
 
