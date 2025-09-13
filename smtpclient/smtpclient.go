@@ -372,28 +372,101 @@ func (c *Client) validateEmail(email Email) error {
 
 func (c *Client) buildMessage(email Email) ([]byte, error) {
 	buf := new(bytes.Buffer)
-
 	headers := c.buildHeaders(email)
-	writer := multipart.NewWriter(buf)
-	headers.Set("Content-Type", fmt.Sprintf("multipart/mixed; boundary=%s", writer.Boundary()))
 
-	c.writeHeaders(buf, headers)
+	if len(email.Attachments) > 0 {
+		writer := multipart.NewWriter(buf)
+		headers.Set("Content-Type", fmt.Sprintf("multipart/mixed; boundary=%s", writer.Boundary()))
 
-	if err := c.addMessageBody(writer, email); err != nil {
-		return nil, err
-	}
+		c.writeHeaders(buf, headers)
 
-	for _, att := range email.Attachments {
-		if err := c.addAttachment(writer, att); err != nil {
-			return nil, fmt.Errorf("failed to add attachment: %w", err)
+		if err := c.addBodyPart(writer, email); err != nil {
+			return nil, err
+		}
+
+		for _, att := range email.Attachments {
+			if err := c.addAttachment(writer, att); err != nil {
+				return nil, fmt.Errorf("failed to add attachment: %w", err)
+			}
+		}
+
+		if closeErr := writer.Close(); closeErr != nil && c.debug {
+			fmt.Printf("Warning: failed to close multipart writer: %v\n", closeErr)
+		}
+	} else {
+		if email.HTMLBody != "" && email.TextBody != "" {
+			writer := multipart.NewWriter(buf)
+			headers.Set("Content-Type", fmt.Sprintf("multipart/alternative; boundary=%s", writer.Boundary()))
+			c.writeHeaders(buf, headers)
+
+			if err := c.addTextPart(writer, email.TextBody); err != nil {
+				return nil, err
+			}
+			if err := c.addHTMLPart(writer, email.HTMLBody); err != nil {
+				return nil, err
+			}
+
+			if closeErr := writer.Close(); closeErr != nil && c.debug {
+				fmt.Printf("Warning: failed to close alternative writer: %v\n", closeErr)
+			}
+		} else if email.HTMLBody != "" {
+			headers.Set("Content-Type", "text/html; charset=utf-8")
+			c.writeHeaders(buf, headers)
+			buf.WriteString(email.HTMLBody)
+		} else if email.TextBody != "" {
+			headers.Set("Content-Type", "text/plain; charset=utf-8")
+			c.writeHeaders(buf, headers)
+			buf.WriteString(email.TextBody)
 		}
 	}
 
-	if closeErr := writer.Close(); closeErr != nil && c.debug {
-		fmt.Printf("Warning: failed to close multipart writer: %v\n", closeErr)
+	return buf.Bytes(), nil
+}
+
+func (c *Client) addBodyPart(writer *multipart.Writer, email Email) error {
+	if email.HTMLBody == "" && email.TextBody == "" {
+		return nil
 	}
 
-	return buf.Bytes(), nil
+	var bodyHeader textproto.MIMEHeader
+	var bodyContent string
+
+	if email.HTMLBody != "" && email.TextBody != "" {
+		altBuf := &bytes.Buffer{}
+		altWriter := multipart.NewWriter(altBuf)
+
+		bodyHeader = textproto.MIMEHeader{}
+		bodyHeader.Set("Content-Type", fmt.Sprintf("multipart/alternative; boundary=%s", altWriter.Boundary()))
+
+		if err := c.addTextPart(altWriter, email.TextBody); err != nil {
+			return err
+		}
+		if err := c.addHTMLPart(altWriter, email.HTMLBody); err != nil {
+			return err
+		}
+
+		if closeErr := altWriter.Close(); closeErr != nil && c.debug {
+			fmt.Printf("Warning: failed to close alternative writer: %v\n", closeErr)
+		}
+
+		bodyContent = altBuf.String()
+	} else if email.HTMLBody != "" {
+		bodyHeader = textproto.MIMEHeader{}
+		bodyHeader.Set("Content-Type", "text/html; charset=utf-8")
+		bodyContent = email.HTMLBody
+	} else {
+		bodyHeader = textproto.MIMEHeader{}
+		bodyHeader.Set("Content-Type", "text/plain; charset=utf-8")
+		bodyContent = email.TextBody
+	}
+
+	pw, err := writer.CreatePart(bodyHeader)
+	if err != nil {
+		return err
+	}
+
+	_, err = pw.Write([]byte(bodyContent))
+	return err
 }
 
 func (c *Client) buildHeaders(email Email) textproto.MIMEHeader {
@@ -425,60 +498,36 @@ func (c *Client) writeHeaders(buf *bytes.Buffer, headers textproto.MIMEHeader) {
 	fmt.Fprintf(buf, "\r\n")
 }
 
-func (c *Client) addMessageBody(writer *multipart.Writer, email Email) error {
-	if email.TextBody == "" && email.HTMLBody == "" {
-		return nil
-	}
-
-	altHeader := textproto.MIMEHeader{}
-	altWriter := multipart.NewWriter(&bytes.Buffer{})
-	altHeader.Set("Content-Type", fmt.Sprintf("multipart/alternative; boundary=%s", altWriter.Boundary()))
-
-	pw, err := writer.CreatePart(altHeader)
-	if err != nil {
-		return err
-	}
-
-	altWriter = multipart.NewWriter(pw)
-
-	c.addTextPart(altWriter, email.TextBody)
-	c.addHTMLPart(altWriter, email.HTMLBody)
-
-	if closeErr := altWriter.Close(); closeErr != nil && c.debug {
-		fmt.Printf("Warning: failed to close alternative writer: %v\n", closeErr)
-	}
-
-	return nil
-}
-
-func (c *Client) addTextPart(altWriter *multipart.Writer, textBody string) {
+func (c *Client) addTextPart(altWriter *multipart.Writer, textBody string) error {
 	if textBody == "" {
-		return
+		return nil
 	}
 
 	textHeader := textproto.MIMEHeader{}
 	textHeader.Set("Content-Type", "text/plain; charset=utf-8")
 	textHeader.Set("Content-Transfer-Encoding", "quoted-printable")
-	if tw, err := altWriter.CreatePart(textHeader); err == nil {
-		if _, writeErr := tw.Write([]byte(textBody)); writeErr != nil && c.debug {
-			fmt.Printf("Warning: failed to write text body: %v\n", writeErr)
-		}
+	tw, err := altWriter.CreatePart(textHeader)
+	if err != nil {
+		return err
 	}
+	_, err = tw.Write([]byte(textBody))
+	return err
 }
 
-func (c *Client) addHTMLPart(altWriter *multipart.Writer, htmlBody string) {
+func (c *Client) addHTMLPart(altWriter *multipart.Writer, htmlBody string) error {
 	if htmlBody == "" {
-		return
+		return nil
 	}
 
 	htmlHeader := textproto.MIMEHeader{}
 	htmlHeader.Set("Content-Type", "text/html; charset=utf-8")
 	htmlHeader.Set("Content-Transfer-Encoding", "quoted-printable")
-	if hw, err := altWriter.CreatePart(htmlHeader); err == nil {
-		if _, writeErr := hw.Write([]byte(htmlBody)); writeErr != nil && c.debug {
-			fmt.Printf("Warning: failed to write HTML body: %v\n", writeErr)
-		}
+	hw, err := altWriter.CreatePart(htmlHeader)
+	if err != nil {
+		return err
 	}
+	_, err = hw.Write([]byte(htmlBody))
+	return err
 }
 
 func (c *Client) addAttachment(writer *multipart.Writer, att Attachment) error {
