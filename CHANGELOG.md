@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.13.0](https://github.com/meysam81/x/compare/v1.12.2...v1.13.0) (2025-09-13)
+
+
+### Features
+
+* add downloader module ([c09a616](https://github.com/meysam81/x/commit/c09a6165c2ed60f26f17cffd530201be905b787f))
+
+
+### Bug Fixes
+
+* **smtp:** allow html body with attachment ([665f8f1](https://github.com/meysam81/x/commit/665f8f13d785cd3e2f6035b6d0a1d96f75e1c0b3))
+
 ## [1.12.2](https://github.com/meysam81/x/compare/v1.12.1...v1.12.2) (2025-08-31)
 
 
