@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.13.0](https://github.com/meysam81/x/compare/chimux-v1.12.3...chimux-v1.13.0) (2026-02-19)
+
+
+### Features
+
+* **chimux:** enable clean-path and real-ip middleware by default ([ef81b97](https://github.com/meysam81/x/commit/ef81b97531dc2b76fa374f140955efa583ef5e25))
+
 ## [1.12.3](https://github.com/meysam81/x/compare/chimux-v1.12.2...chimux-v1.12.3) (2026-02-19)
 
 
