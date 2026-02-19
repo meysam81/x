@@ -36,7 +36,7 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@v6
         with:
-          go-version-file: ${{ matrix/module }}/go.mod
+          go-version-file: ${{ matrix.module }}/go.mod
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v8
         with:
