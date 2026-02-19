@@ -28,3 +28,6 @@ go.work
 *~
 .envrc
 docs/plans/
+.agents
+.claude
+.direnv

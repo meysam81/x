@@ -10,22 +10,36 @@ import (
 
 type options struct {
 	disableRecoveryMiddleware bool
+	disableCleanPath          bool
+	disableRealIP             bool
 	enableLoggingMiddleware   bool
 	logger                    *logging.Logger
 	disableLogHeaders         bool
 	enableMetrics             bool
 	enableHealthz             bool
 
-	enableHealthzLoging bool
-	healthzEndpoint     string
+	enableHealthzLogging bool
+	healthzEndpoint      string
 
 	enableMetricsLogging bool
 	metricsEndpoint      string
 }
 
-func WithDisableRecoveryMiddlware() func(*options) {
+func WithDisableRecoveryMiddleware() func(*options) {
 	return func(o *options) {
 		o.disableRecoveryMiddleware = true
+	}
+}
+
+func WithDisableCleanPath() func(*options) {
+	return func(o *options) {
+		o.disableCleanPath = true
+	}
+}
+
+func WithDisableRealIP() func(*options) {
+	return func(o *options) {
+		o.disableRealIP = true
 	}
 }
 
@@ -73,7 +87,7 @@ func WithMetricsEndpoint(uri string) func(*options) {
 
 func WithLogHealthRequests() func(*options) {
 	return func(o *options) {
-		o.enableHealthzLoging = true
+		o.enableHealthzLogging = true
 	}
 }
 
@@ -92,6 +106,14 @@ func NewChi(opts ...func(*options)) *chi.Mux {
 	}
 
 	r := chi.NewRouter()
+
+	if !o.disableCleanPath {
+		r.Use(middleware.CleanPath)
+	}
+
+	if !o.disableRealIP {
+		r.Use(middleware.RealIP)
+	}
 
 	if o.enableLoggingMiddleware {
 		if o.logger == nil {

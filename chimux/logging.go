@@ -12,7 +12,7 @@ import (
 type logRequest struct{ o *options }
 
 func (l *logRequest) shouldSkip(r *http.Request) bool {
-	if !l.o.enableHealthzLoging && r.URL.Path == l.o.healthzEndpoint {
+	if !l.o.enableHealthzLogging && r.URL.Path == l.o.healthzEndpoint {
 		return true
 	}
 
@@ -54,13 +54,6 @@ func (l *logRequest) logWithHeader() func(next http.Handler) http.Handler {
 
 			next.ServeHTTP(ww, r)
 
-			clientAddr := r.RemoteAddr
-			if r.Header.Get("x-forwarded-for") != "" {
-				clientAddr = r.Header.Get("x-forwarded-for")
-			} else if r.Header.Get("x-real-ip") != "" {
-				clientAddr = r.Header.Get("x-real-ip")
-			}
-
 			var headers []string
 			for header, values := range r.Header {
 				var valueStr string
@@ -82,7 +75,7 @@ func (l *logRequest) logWithHeader() func(next http.Handler) http.Handler {
 				Str("method", r.Method).
 				Str("path", r.URL.Path).
 				Int("status", ww.Status()).
-				Str("remote_addr", clientAddr).
+				Str("remote_addr", r.RemoteAddr).
 				Str("headers", strings.Join(headers, ", ")).
 				Send()
 		})
@@ -97,13 +90,6 @@ func (l *logRequest) logWithoutHeader() func(next http.Handler) http.Handler {
 
 			next.ServeHTTP(ww, r)
 
-			clientAddr := r.RemoteAddr
-			if r.Header.Get("x-forwarded-for") != "" {
-				clientAddr = r.Header.Get("x-forwarded-for")
-			} else if r.Header.Get("x-real-ip") != "" {
-				clientAddr = r.Header.Get("x-real-ip")
-			}
-
 			if l.shouldSkip(r) {
 				return
 			}
@@ -114,7 +100,7 @@ func (l *logRequest) logWithoutHeader() func(next http.Handler) http.Handler {
 				Str("method", r.Method).
 				Str("path", r.URL.Path).
 				Int("status", ww.Status()).
-				Str("remote_addr", clientAddr).
+				Str("remote_addr", r.RemoteAddr).
 				Str("user_agent", r.UserAgent()).
 				Send()
 		})
