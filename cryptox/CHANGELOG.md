@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.12.3](https://github.com/meysam81/x/compare/cryptox-v1.12.2...cryptox-v1.12.3) (2026-02-19)
+
+
+### Bug Fixes
+
+* **deps:** update module golang.org/x/crypto to v0.48.0 ([#52](https://github.com/meysam81/x/issues/52)) ([1e29527](https://github.com/meysam81/x/commit/1e29527c26ac67a8185deac7323eb209e7dce3a8))
+
 ## [1.12.2](https://github.com/meysam81/x/compare/cryptox-v1.0.0...cryptox-v1.12.2) (2026-02-19)
 
 

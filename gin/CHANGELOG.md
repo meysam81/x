@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.12.3](https://github.com/meysam81/x/compare/gin-v1.12.2...gin-v1.12.3) (2026-02-19)
+
+
+### Bug Fixes
+
+* **deps:** update module github.com/gin-gonic/gin to v1.11.0 ([#56](https://github.com/meysam81/x/issues/56)) ([a0985d6](https://github.com/meysam81/x/commit/a0985d6b386197ce590b34f00893d9b55168feff))
+
 ## [1.12.2](https://github.com/meysam81/x/compare/gin-v1.0.0...gin-v1.12.2) (2026-02-19)
 
 

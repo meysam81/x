@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.12.3](https://github.com/meysam81/x/compare/config-v1.12.2...config-v1.12.3) (2026-02-19)
+
+
+### Bug Fixes
+
+* **deps:** update module github.com/knadh/koanf/providers/file to v1.2.1 ([#59](https://github.com/meysam81/x/issues/59)) ([5702f8f](https://github.com/meysam81/x/commit/5702f8fde4aa2c449d8efe1e3bc91bd19c78156c))
+* **deps:** update module github.com/knadh/koanf/v2 to v2.3.2 ([#54](https://github.com/meysam81/x/issues/54)) ([e0acde7](https://github.com/meysam81/x/commit/e0acde75d941f2fe55bf15f58f435e42bb7847e5))
+
 ## [1.12.2](https://github.com/meysam81/x/compare/config-v1.0.0...config-v1.12.2) (2026-02-19)
 
 

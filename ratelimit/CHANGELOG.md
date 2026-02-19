@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.12.3](https://github.com/meysam81/x/compare/ratelimit-v1.12.2...ratelimit-v1.12.3) (2026-02-19)
+
+
+### Bug Fixes
+
+* **deps:** update module github.com/redis/go-redis/v9 to v9.18.0 ([#61](https://github.com/meysam81/x/issues/61)) ([29520c0](https://github.com/meysam81/x/commit/29520c0edf6818bde001ca2d67ac6de0198a2faa))
+
 ## [1.12.2](https://github.com/meysam81/x/compare/ratelimit-v1.0.0...ratelimit-v1.12.2) (2026-02-19)
 
 
