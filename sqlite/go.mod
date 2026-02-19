@@ -3,7 +3,7 @@ module github.com/meysam81/x/sqlite
 go 1.25.0
 
 require (
-	github.com/mattn/go-sqlite3 v1.14.30
+	github.com/mattn/go-sqlite3 v1.14.34
 	modernc.org/sqlite v1.46.1
 )
 
