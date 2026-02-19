@@ -1,13 +1,13 @@
 {
-  "chimux": "1.12.2",
-  "config": "1.12.2",
-  "cryptox": "1.12.2",
+  "chimux": "1.12.3",
+  "config": "1.12.3",
+  "cryptox": "1.12.3",
   "downloader": "1.12.2",
-  "gin": "1.12.2",
+  "gin": "1.12.3",
   "httputils": "1.12.2",
   "logging": "1.12.2",
-  "ratelimit": "1.12.2",
+  "ratelimit": "1.12.3",
   "smtpclient": "1.12.2",
-  "sqlite": "1.12.2",
-  "tracing": "1.12.2"
+  "sqlite": "1.12.3",
+  "tracing": "1.12.3"
 }

@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.12.3](https://github.com/meysam81/x/compare/tracing-v1.12.2...tracing-v1.12.3) (2026-02-19)
+
+
+### Bug Fixes
+
+* **deps:** update module github.com/go-chi/chi/v5 to v5.2.5 ([#45](https://github.com/meysam81/x/issues/45)) ([19069ee](https://github.com/meysam81/x/commit/19069eefc07f43ae78f07e3a4100b679042b343b))
+* **deps:** update opentelemetry-go monorepo to v1.40.0 ([#48](https://github.com/meysam81/x/issues/48)) ([5317ea4](https://github.com/meysam81/x/commit/5317ea4ed06ad61812497001e3aa22171ce09135))
+
 ## [1.12.2](https://github.com/meysam81/x/compare/tracing-v1.0.0...tracing-v1.12.2) (2026-02-19)
 
 

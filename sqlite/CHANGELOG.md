@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.12.3](https://github.com/meysam81/x/compare/sqlite-v1.12.2...sqlite-v1.12.3) (2026-02-19)
+
+
+### Bug Fixes
+
+* **deps:** update module github.com/mattn/go-sqlite3 to v1.14.34 ([#34](https://github.com/meysam81/x/issues/34)) ([eb26ffe](https://github.com/meysam81/x/commit/eb26ffe1f7544171f2abbf5dc1d24367dec33dc3))
+* **deps:** update module modernc.org/sqlite to v1.46.1 ([#55](https://github.com/meysam81/x/issues/55)) ([c735690](https://github.com/meysam81/x/commit/c7356901a1d547258b2409052a3596d9f61b53bf))
+
 ## [1.12.2](https://github.com/meysam81/x/compare/sqlite-v1.0.0...sqlite-v1.12.2) (2026-02-19)
 
 

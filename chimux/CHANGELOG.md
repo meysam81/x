@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.12.3](https://github.com/meysam81/x/compare/chimux-v1.12.2...chimux-v1.12.3) (2026-02-19)
+
+
+### Bug Fixes
+
+* **deps:** update module github.com/go-chi/chi/v5 to v5.2.5 ([#45](https://github.com/meysam81/x/issues/45)) ([19069ee](https://github.com/meysam81/x/commit/19069eefc07f43ae78f07e3a4100b679042b343b))
+* **deps:** update module github.com/prometheus/client_golang to v1.23.2 ([#50](https://github.com/meysam81/x/issues/50)) ([a4bfc3f](https://github.com/meysam81/x/commit/a4bfc3f7f914bb69c75717903045f7c7520ebd64))
+
 ## [1.12.2](https://github.com/meysam81/x/compare/chimux-v1.0.0...chimux-v1.12.2) (2026-02-19)
 
 
