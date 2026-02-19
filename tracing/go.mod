@@ -3,7 +3,7 @@ module github.com/meysam81/x/tracing
 go 1.25.0
 
 require (
-	github.com/go-chi/chi/v5 v5.2.2
+	github.com/go-chi/chi/v5 v5.2.5
 	github.com/meysam81/x/logging v0.0.0
 	go.opentelemetry.io/otel v1.40.0
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp v1.40.0
