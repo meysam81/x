@@ -1,48 +1,48 @@
 {
   "packages": {
     "chimux": {
-      "release-type": "go",
-      "component": "chimux"
+      "component": "chimux",
+      "release-type": "go"
     },
     "config": {
-      "release-type": "go",
-      "component": "config"
+      "component": "config",
+      "release-type": "go"
     },
     "cryptox": {
-      "release-type": "go",
-      "component": "cryptox"
+      "component": "cryptox",
+      "release-type": "go"
     },
     "downloader": {
-      "release-type": "go",
-      "component": "downloader"
+      "component": "downloader",
+      "release-type": "go"
     },
     "gin": {
-      "release-type": "go",
-      "component": "gin"
+      "component": "gin",
+      "release-type": "go"
     },
     "httputils": {
-      "release-type": "go",
-      "component": "httputils"
+      "component": "httputils",
+      "release-type": "go"
     },
     "logging": {
-      "release-type": "go",
-      "component": "logging"
+      "component": "logging",
+      "release-type": "go"
     },
     "ratelimit": {
-      "release-type": "go",
-      "component": "ratelimit"
+      "component": "ratelimit",
+      "release-type": "go"
     },
     "smtpclient": {
-      "release-type": "go",
-      "component": "smtpclient"
+      "component": "smtpclient",
+      "release-type": "go"
     },
     "sqlite": {
-      "release-type": "go",
-      "component": "sqlite"
+      "component": "sqlite",
+      "release-type": "go"
     },
     "tracing": {
-      "release-type": "go",
-      "component": "tracing"
+      "component": "tracing",
+      "release-type": "go"
     }
   }
 }
