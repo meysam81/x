@@ -1,0 +1,48 @@
+{
+  "packages": {
+    "chimux": {
+      "release-type": "go",
+      "component": "chimux"
+    },
+    "config": {
+      "release-type": "go",
+      "component": "config"
+    },
+    "cryptox": {
+      "release-type": "go",
+      "component": "cryptox"
+    },
+    "downloader": {
+      "release-type": "go",
+      "component": "downloader"
+    },
+    "gin": {
+      "release-type": "go",
+      "component": "gin"
+    },
+    "httputils": {
+      "release-type": "go",
+      "component": "httputils"
+    },
+    "logging": {
+      "release-type": "go",
+      "component": "logging"
+    },
+    "ratelimit": {
+      "release-type": "go",
+      "component": "ratelimit"
+    },
+    "smtpclient": {
+      "release-type": "go",
+      "component": "smtpclient"
+    },
+    "sqlite": {
+      "release-type": "go",
+      "component": "sqlite"
+    },
+    "tracing": {
+      "release-type": "go",
+      "component": "tracing"
+    }
+  }
+}

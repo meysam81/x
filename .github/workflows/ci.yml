@@ -9,31 +9,49 @@ on:
       - main
 
 jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.modules.outputs.matrix }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+      - name: Discover Go modules
+        id: modules
+        run: |
+          MODULES=$(find . -maxdepth 2 -name 'go.mod' -not -path './go.mod' -exec dirname {} \; | sed 's|^\./||' | sort -h | jq -R -s -c 'split("\n") | map(select(length > 0))')
+          echo "matrix={\"module\":$MODULES}" >> "$GITHUB_OUTPUT"
+
   checks:
+    needs: prepare
     permissions:
       contents: read
       pull-requests: read
     runs-on: ubuntu-latest
+    strategy:
+      matrix: ${{ fromJson(needs.prepare.outputs.matrix) }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
       - name: Setup Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v6
         with:
-          go-version: 1.25
+          go-version-file: ${{ matrix/module }}/go.mod 
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v8
         with:
           version: v2.1
+          working-directory: ${{ matrix.module }}
       - name: Go build
+        working-directory: ${{ matrix.module }}
         run: go build ./...
+      - name: Go test
+        working-directory: ${{ matrix.module }}
+        run: go test ./...
 
   release-please:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
-    outputs:
-      releases_created: ${{ steps.release-please.outputs.releases_created }}
-      tag_name: ${{ steps.release-please.outputs.tag_name }}
     permissions:
       contents: write
       issues: write
@@ -43,4 +61,5 @@ jobs:
         name: Release please
         uses: googleapis/release-please-action@v4
         with:
-          release-type: go
+          config-file: release-please-config.json
+          manifest-file: .release-please-manifest.json

@@ -1,0 +1,13 @@
+{
+  "chimux": "1.0.0",
+  "config": "1.0.0",
+  "cryptox": "1.0.0",
+  "downloader": "1.0.0",
+  "gin": "1.0.0",
+  "httputils": "1.0.0",
+  "logging": "1.0.0",
+  "ratelimit": "1.0.0",
+  "smtpclient": "1.0.0",
+  "sqlite": "1.0.0",
+  "tracing": "1.0.0"
+}
