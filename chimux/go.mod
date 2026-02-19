@@ -3,7 +3,7 @@ module github.com/meysam81/x/chimux
 go 1.25.0
 
 require (
-	github.com/go-chi/chi/v5 v5.2.2
+	github.com/go-chi/chi/v5 v5.2.5
 	github.com/meysam81/x/logging v0.0.0
 	github.com/prometheus/client_golang v1.23.2
 )
