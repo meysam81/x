@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.13.1](https://github.com/meysam81/x/compare/chimux-v1.13.0...chimux-v1.13.1) (2026-02-21)
+
+
+### Bug Fixes
+
+* remove replace for dependencies to x/logging ([73e0edc](https://github.com/meysam81/x/commit/73e0edc2fb92bd7a69b706443864d7a4afa33760))
+
 ## [1.13.0](https://github.com/meysam81/x/compare/chimux-v1.12.3...chimux-v1.13.0) (2026-02-19)
 
 
