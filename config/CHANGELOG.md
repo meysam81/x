@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.12.5](https://github.com/meysam81/x/compare/config-v1.12.4...config-v1.12.5) (2026-02-21)
+
+
+### Bug Fixes
+
+* **config:** update go.sum ([a3bd25e](https://github.com/meysam81/x/commit/a3bd25e9a89b59eaf4c93b49ca7c5f9d74adddd3))
+
 ## [1.12.4](https://github.com/meysam81/x/compare/config-v1.12.3...config-v1.12.4) (2026-02-19)
 
 
