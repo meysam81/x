@@ -4,7 +4,7 @@ go 1.25.0
 
 require (
 	github.com/go-chi/chi/v5 v5.2.5
-	github.com/meysam81/x/logging v0.0.0-20260219154253-49caa677ab7a
+	github.com/meysam81/x/logging v0.0.0-20260221031814-a3bd25e9a89b
 	go.opentelemetry.io/otel v1.40.0
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp v1.40.0
 	go.opentelemetry.io/otel/sdk v1.40.0

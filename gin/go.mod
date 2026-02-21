@@ -4,7 +4,7 @@ go 1.25.0
 
 require (
 	github.com/gin-gonic/gin v1.11.0
-	github.com/meysam81/x/logging v0.0.0-20260219154253-49caa677ab7a
+	github.com/meysam81/x/logging v0.0.0-20260221031814-a3bd25e9a89b
 )
 
 require (
