@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.12.4](https://github.com/meysam81/x/compare/tracing-v1.12.3...tracing-v1.12.4) (2026-02-21)
+
+
+### Bug Fixes
+
+* remove replace for dependencies to x/logging ([73e0edc](https://github.com/meysam81/x/commit/73e0edc2fb92bd7a69b706443864d7a4afa33760))
+
 ## [1.12.3](https://github.com/meysam81/x/compare/tracing-v1.12.2...tracing-v1.12.3) (2026-02-19)
 
 
