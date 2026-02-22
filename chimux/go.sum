@@ -28,6 +28,8 @@ github.com/mattn/go-isatty v0.0.20 h1:xfD0iDuEKnDkl03q4limB+vH+GxLEtL/jb4xVJSWWE
 github.com/mattn/go-isatty v0.0.20/go.mod h1:W+V8PltTTMOvKvAeJH7IuucS94S2C6jfK/D7dTCTo3Y=
 github.com/meysam81/x/logging v0.0.0-20260219154253-49caa677ab7a h1:3vgZId8Zl/HQkqu+RblV1z1c1hpJjET+gBA4K6+o4to=
 github.com/meysam81/x/logging v0.0.0-20260219154253-49caa677ab7a/go.mod h1:IQhI/oS327Dq2f+4LnTFO8GwmmlaalLCOXCPK7JS5LM=
+github.com/meysam81/x/logging v0.0.0-20260221031814-a3bd25e9a89b h1:/9JkJLZzDh2/1LHSo0zrX/+7rbBXnAfkNS1cst44RAc=
+github.com/meysam81/x/logging v0.0.0-20260221031814-a3bd25e9a89b/go.mod h1:IQhI/oS327Dq2f+4LnTFO8GwmmlaalLCOXCPK7JS5LM=
 github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 h1:C3w9PqII01/Oq1c1nUAm88MOHcQC9l5mIlSMApZMrHA=
 github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822/go.mod h1:+n7T8mK8HuQTcFwEeznm/DIxMOiR9yIdICNftLE1DvQ=
 github.com/pkg/errors v0.9.1 h1:FEBLx1zS214owpjy7qsBeixbURkuhQAwrK5UwLGTwt4=
