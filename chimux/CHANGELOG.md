@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.14.0](https://github.com/meysam81/x/compare/chimux-v1.13.1...chimux-v1.14.0) (2026-02-24)
+
+
+### Features
+
+* **chimux:** provide a preset of http headers to log by default ([d1290bd](https://github.com/meysam81/x/commit/d1290bd31ec13a6fa29f05441a66779fe54c65ca))
+
+
+### Bug Fixes
+
+* add go doc to modules ([c186d76](https://github.com/meysam81/x/commit/c186d7656f8574fba53da28232d13453d75c3d3c))
+
 ## [1.13.1](https://github.com/meysam81/x/compare/chimux-v1.13.0...chimux-v1.13.1) (2026-02-21)
 
 

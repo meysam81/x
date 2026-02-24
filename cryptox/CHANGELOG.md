@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.12.4](https://github.com/meysam81/x/compare/cryptox-v1.12.3...cryptox-v1.12.4) (2026-02-24)
+
+
+### Bug Fixes
+
+* add go doc to modules ([c186d76](https://github.com/meysam81/x/commit/c186d7656f8574fba53da28232d13453d75c3d3c))
+
 ## [1.12.3](https://github.com/meysam81/x/compare/cryptox-v1.12.2...cryptox-v1.12.3) (2026-02-19)
 
 
