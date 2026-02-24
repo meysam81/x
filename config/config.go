@@ -1,3 +1,6 @@
+// Package config wraps koanf to provide configuration loading from JSON files,
+// YAML files, and environment variables. It exposes a functional options API
+// for composing the desired configuration sources.
 package config
 
 import (
@@ -83,6 +86,10 @@ func WithUnmarshalConf(c *UnmarshalConf) func(*options) {
 	}
 }
 
+// NewConfig creates a new Config by loading sources in order: defaults, JSON
+// file, YAML file, then environment variables. Each successive source overrides
+// earlier ones. Environment variables have the configured prefix stripped and
+// use underscores as delimiter separators (double underscores map to hyphens).
 func NewConfig(opts ...func(*options)) (*Config, error) {
 	o := &options{
 		delimiter:        ".",

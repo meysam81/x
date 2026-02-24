@@ -1,3 +1,6 @@
+// Package smtpclient provides an SMTP client with TLS and STARTTLS support,
+// multiple authentication methods (PLAIN, LOGIN, CRAM-MD5), configurable retry
+// with exponential backoff, and multipart email composition with attachments.
 package smtpclient
 
 import (
@@ -569,6 +572,7 @@ func (c *Client) addAttachment(writer *multipart.Writer, att Attachment) error {
 	return nil
 }
 
+// AttachFile opens the file at path and returns an Attachment ready for use in an Email.
 func AttachFile(path string) (Attachment, error) {
 	file, err := os.Open(path)
 	if err != nil {

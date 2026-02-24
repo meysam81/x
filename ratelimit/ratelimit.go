@@ -1,3 +1,5 @@
+// Package ratelimit provides Redis-backed rate limiting using common algorithms
+// such as token bucket, leaky bucket, sliding window, and fixed window.
 package ratelimit
 
 import (
@@ -7,6 +9,7 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
+// RateLimit holds the Redis client and configuration shared by all algorithms.
 type RateLimit struct {
 	Redis       *redis.Client
 	MaxRequests int
@@ -14,6 +17,8 @@ type RateLimit struct {
 	Window      time.Duration
 }
 
+// Result holds the outcome of a rate limit check, including whether the
+// request was allowed and the remaining quota within the current window.
 type Result struct {
 	Allowed   bool
 	Total     int64
@@ -22,41 +27,15 @@ type Result struct {
 	resetAt int64
 }
 
+// ResetAt returns the time at which the rate limit quota fully replenishes.
 func (r *Result) ResetAt() time.Time {
 	return time.Unix(0, r.resetAt)
 }
 
-// TokenBucket implements the token bucket rate limiting algorithm.
-//
-// This algorithm maintains a bucket with a fixed capacity of tokens that are
-// refilled at a constant rate. Each request consumes one token. If no tokens
-// are available, the request is rejected.
-//
-// Advantages:
-// - Allows bursts up to the bucket capacity
-// - Smooths out traffic over time
-// - Predictable refill rate
-// - Good for APIs that need to handle occasional traffic spikes
-//
-// Best use cases:
-// - APIs that should allow brief bursts of activity
-// - Services where you want to permit accumulated "credits" for unused capacity
-// - Applications that need flexible rate limiting with burst tolerance
-// - User-facing APIs where occasional higher usage should be permitted
-//
-// Companies using this pattern:
-//   - Amazon AWS API Gateway: Uses token bucket for API throttling to allow burst traffic
-//     while maintaining overall rate limits for their cloud services
-//   - Netflix: Implements token bucket in their microservices architecture to handle
-//     traffic spikes during peak viewing hours while protecting backend services
-//   - GitHub: Uses token bucket for their REST API rate limiting to allow developers
-//     to make burst requests while staying within hourly limits
-//   - Shopify: Employs token bucket for their API rate limiting to handle merchant
-//     traffic bursts during sales events while protecting their infrastructure
-//
-// Example: An API that allows 100 requests per minute but should handle
-// a user making 50 requests in the first 10 seconds, then being limited
-// to the refill rate afterward.
+// TokenBucket checks whether a request identified by key is allowed under
+// token bucket rate limiting. Tokens refill at RefillRate per second up to
+// MaxRequests capacity, allowing short bursts. Returns a *Result with quota
+// details; on Redis error, returns denied.
 func (config *RateLimit) TokenBucket(ctx context.Context, key string) *Result {
 	key = "tb:" + key
 	now := time.Now().UnixNano()
@@ -97,38 +76,10 @@ func (config *RateLimit) TokenBucket(ctx context.Context, key string) *Result {
 	}
 }
 
-// LeakyBucket implements the leaky bucket rate limiting algorithm.
-//
-// This algorithm maintains a queue with fixed capacity. Requests are added to
-// the queue and processed (leaked) at a constant rate. If the queue is full,
-// new requests are rejected.
-//
-// Advantages:
-// - Enforces strict rate limiting without bursts
-// - Provides smooth, consistent output rate
-// - Prevents sudden traffic spikes from overwhelming downstream services
-// - More predictable resource usage
-//
-// Best use cases:
-// - Background job processing systems
-// - API gateways protecting downstream services with strict capacity limits
-// - Systems where consistent, predictable load is critical
-// - Services that cannot handle traffic bursts
-// - Rate limiting expensive operations like database writes or external API calls
-//
-// Companies using this pattern:
-//   - Google Cloud Platform: Uses leaky bucket in their Cloud Functions and App Engine
-//     to ensure consistent processing rates and protect against overwhelming their
-//     container orchestration systems
-//   - Stripe: Implements leaky bucket for payment processing to maintain consistent
-//     transaction processing rates and prevent overwhelming their banking partners
-//   - Uber: Uses leaky bucket in their dispatch systems to ensure smooth, consistent
-//     driver assignment rates during peak demand without overwhelming their algorithms
-//   - Slack: Employs leaky bucket for message delivery to ensure consistent chat
-//     message processing rates across their distributed messaging infrastructure
-//
-// Example: A service that processes webhook events and can only handle
-// exactly 10 events per second without causing performance issues.
+// LeakyBucket checks whether a request identified by key is allowed under
+// leaky bucket rate limiting. Requests fill a queue that drains at a constant
+// rate, enforcing smooth throughput with no bursts. Returns true if allowed,
+// or false if the queue is full or a Redis error occurs.
 func (config *RateLimit) LeakyBucket(ctx context.Context, key string) bool {
 	key = "lb:" + key
 	now := time.Now().UnixNano()
@@ -159,38 +110,10 @@ func (config *RateLimit) LeakyBucket(ctx context.Context, key string) bool {
 	return result == 1
 }
 
-// SlidingWindow implements the sliding window rate limiting algorithm.
-//
-// This algorithm tracks request timestamps within a moving time window.
-// It allows MaxRequests within any Window duration. Old requests outside
-// the current window are automatically discarded.
-//
-// Advantages:
-// - Precise rate limiting over exact time periods
-// - No burst allowance - strict adherence to rate limits
-// - Memory of recent activity provides fair rate limiting
-// - Prevents gaming the system by timing requests around fixed windows
-//
-// Best use cases:
-// - APIs with strict rate limits that must be precisely enforced
-// - Premium API tiers with exact usage quotas
-// - Anti-abuse systems where precise timing matters
-// - Services where you need to prevent concentrated usage patterns
-// - Financial or billing APIs where exact rate enforcement is required
-//
-// Companies using this pattern:
-//   - Twitter/X: Uses sliding window for their API rate limiting to prevent abuse
-//     and ensure fair access to their real-time data streams and posting APIs
-//   - Discord: Implements sliding window for message rate limiting to prevent spam
-//     and ensure fair usage of their chat platforms across millions of users
-//   - Reddit: Uses sliding window for comment and post submission rate limiting
-//     to prevent spam and maintain platform quality while allowing normal usage
-//   - Twilio: Employs sliding window for their messaging and voice API rate limits
-//     to ensure precise enforcement of usage quotas for their communication services
-//
-// Example: A premium API service that strictly allows 1000 requests per hour
-// per user, where the user cannot circumvent the limit by timing requests
-// around hourly boundaries.
+// SlidingWindow checks whether a request identified by key is allowed under
+// sliding window log rate limiting. It tracks individual timestamps, allowing
+// at most MaxRequests within any rolling Window. Returns true if allowed, or
+// false if the limit is reached or a Redis error occurs.
 func (config *RateLimit) SlidingWindow(ctx context.Context, key string) bool {
 	key = "sw:" + key
 	now := time.Now().UnixNano()
@@ -219,35 +142,10 @@ func (config *RateLimit) SlidingWindow(ctx context.Context, key string) bool {
 	return result == 1
 }
 
-// FixedWindow implements the fixed window counter rate limiting algorithm.
-//
-// This algorithm divides time into fixed windows and counts requests within
-// each window. The counter resets at the start of each new window.
-//
-// Advantages:
-// - Memory efficient - only stores a single counter per window
-// - Simple to understand and implement
-// - Fast performance with minimal Redis operations
-// - Predictable memory usage
-//
-// Best use cases:
-// - High-throughput APIs where memory efficiency is critical
-// - Simple rate limiting requirements without burst considerations
-// - Analytics and monitoring systems
-// - Basic API quotas where precision at window boundaries isn't critical
-//
-// Companies using this pattern:
-//   - LinkedIn: Uses fixed window for their social API rate limiting to efficiently
-//     handle millions of requests while maintaining simple, predictable limits
-//   - Pinterest: Implements fixed window for their image upload and pin creation APIs
-//     to provide straightforward rate limiting with minimal computational overhead
-//   - Instagram: Uses fixed window for basic API rate limiting on their platform APIs
-//     to efficiently manage high-volume traffic from mobile applications
-//   - Spotify: Employs fixed window for their music streaming API rate limits
-//     to handle massive scale while keeping rate limiting logic simple and fast
-//
-// Example: An API that allows 1000 requests per hour, resetting the counter
-// at the top of each hour (00:00, 01:00, 02:00, etc.).
+// FixedWindow checks whether a request identified by key is allowed under
+// fixed window rate limiting. It counts requests in discrete, non-overlapping
+// windows of length Window, allowing up to MaxRequests per window. Bursts up
+// to 2x the limit are possible at window boundaries. Returns true if allowed.
 func (config *RateLimit) FixedWindow(ctx context.Context, key string) bool {
 	key = "fw:" + key
 	now := time.Now().UnixNano()
@@ -277,37 +175,10 @@ func (config *RateLimit) FixedWindow(ctx context.Context, key string) bool {
 	return result == 1
 }
 
-// SlidingWindowCounter implements the sliding window counter rate limiting algorithm.
-//
-// This algorithm combines fixed windows with weighted calculations to approximate
-// a true sliding window. It uses the current and previous window counts with
-// time-based weighting to estimate the rate within a sliding window.
-//
-// Advantages:
-// - More accurate than fixed window, more efficient than sliding window log
-// - Smooth rate limiting without sharp boundaries
-// - Memory efficient - only stores two counters
-// - Good balance between accuracy and performance
-//
-// Best use cases:
-// - High-scale APIs needing better accuracy than fixed windows
-// - CDNs and edge computing where efficiency matters
-// - Services requiring smooth rate limiting without exact precision
-// - Multi-tenant systems with many rate limit keys
-//
-// Companies using this pattern:
-//   - Cloudflare: Uses sliding window counter in their edge network for DDoS protection
-//     and rate limiting across their global CDN infrastructure
-//   - Fastly: Implements sliding window counter for their CDN rate limiting to balance
-//     accuracy and performance across their edge computing platform
-//   - Kong: Uses sliding window counter in their API gateway for rate limiting
-//     microservices while maintaining high performance and reasonable accuracy
-//   - DataDog: Employs sliding window counter for their metrics ingestion rate limiting
-//     to handle massive scale monitoring data while preventing abuse
-//
-// Example: An API that allows 100 requests per minute with smooth enforcement,
-// where a request at 10:30:30 considers requests from 09:29:30 to 10:30:30
-// using weighted calculations from two 1-minute windows.
+// SlidingWindowCounter checks whether a request identified by key is allowed
+// under sliding window counter rate limiting. It approximates a true sliding
+// window by weighting the current and previous fixed window counters, offering
+// a balance between accuracy and memory efficiency. Returns true if allowed.
 func (config *RateLimit) SlidingWindowCounter(ctx context.Context, key string) bool {
 	key = "swc:" + key
 	now := time.Now().UnixNano()
@@ -350,37 +221,10 @@ func (config *RateLimit) SlidingWindowCounter(ctx context.Context, key string) b
 	return result == 1
 }
 
-// DistributedSlidingWindow implements a distributed sliding window rate limiting algorithm.
-//
-// This algorithm maintains sliding window state across multiple Redis nodes or
-// instances, using distributed consensus to ensure accurate rate limiting even
-// when requests are spread across multiple application instances.
-//
-// Advantages:
-// - Accurate rate limiting in distributed environments
-// - Handles network partitions and Redis failover scenarios
-// - Scales horizontally across multiple application instances
-// - Maintains consistency across distributed systems
-//
-// Best use cases:
-// - Microservices architectures with multiple instances
-// - Multi-region deployments requiring consistent rate limiting
-// - Large-scale systems where single Redis instance isn't sufficient
-// - Critical systems requiring rate limit accuracy despite infrastructure failures
-//
-// Companies using this pattern:
-//   - PayPal: Uses distributed sliding window for their payment APIs across multiple
-//     data centers to ensure consistent fraud protection and rate limiting globally
-//   - Airbnb: Implements distributed sliding window for their booking and search APIs
-//     across multiple regions to prevent abuse while maintaining service availability
-//   - Coinbase: Uses distributed sliding window for their cryptocurrency trading APIs
-//     to ensure consistent rate limiting across their distributed exchange infrastructure
-//   - Square: Employs distributed sliding window for their payment processing APIs
-//     to maintain consistent rate limits across their global point-of-sale network
-//
-// Example: A payment API deployed across multiple regions where rate limits
-// must be enforced globally - a user hitting the US endpoint shouldn't be
-// able to bypass limits by simultaneously hitting the EU endpoint.
+// DistributedSlidingWindow checks whether a request identified by key is
+// allowed under sliding window rate limiting across multiple application
+// instances. Each node tracks its own shard and aggregates counts from all
+// shards to enforce a global limit. Returns true if allowed.
 func (config *RateLimit) DistributedSlidingWindow(ctx context.Context, key string, nodeID string) bool {
 	key = "dsw:" + key
 	now := time.Now().UnixNano()

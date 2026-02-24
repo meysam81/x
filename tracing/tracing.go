@@ -1,3 +1,5 @@
+// Package tracing provides OpenTelemetry tracing setup with OTLP HTTP export,
+// automatic shutdown on context cancellation, and chi-compatible HTTP middleware.
 package tracing
 
 import (
@@ -19,6 +21,7 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 )
 
+// TracingConfig holds configuration for the OpenTelemetry tracer.
 type TracingConfig struct {
 	ServiceName     string
 	ServiceVersion  string
@@ -29,6 +32,7 @@ type TracingConfig struct {
 	ShutdownTimeoutSec int
 }
 
+// Tracer wraps an OpenTelemetry TracerProvider with convenience methods.
 type Tracer struct {
 	Provider *sdktrace.TracerProvider
 	Tracer   trace.Tracer
@@ -36,6 +40,9 @@ type Tracer struct {
 	Config   *TracingConfig
 }
 
+// NewTracer creates a Tracer configured with an OTLP HTTP exporter. It returns
+// a no-op tracer if Enabled is false. The provider is automatically shut down
+// when ctx is cancelled.
 func NewTracer(ctx context.Context, config *TracingConfig, logger *logging.Logger) (*Tracer, error) {
 	if !config.Enabled {
 		return &Tracer{Logger: logger}, nil
@@ -111,6 +118,7 @@ func NewTracer(ctx context.Context, config *TracingConfig, logger *logging.Logge
 	return t, nil
 }
 
+// GetTracer returns the underlying tracer, or a no-op tracer if tracing is disabled.
 func (t *Tracer) GetTracer() trace.Tracer {
 	if t.Tracer == nil {
 		return otel.GetTracerProvider().Tracer("noop")
@@ -118,6 +126,7 @@ func (t *Tracer) GetTracer() trace.Tracer {
 	return t.Tracer
 }
 
+// Shutdown flushes pending spans and shuts down the trace provider.
 func (t *Tracer) Shutdown(ctx context.Context) error {
 	if t.Provider == nil {
 		return nil
@@ -125,6 +134,7 @@ func (t *Tracer) Shutdown(ctx context.Context) error {
 	return t.Provider.Shutdown(ctx)
 }
 
+// StartSpan starts a new span; it returns the original context unchanged if tracing is disabled.
 func (t *Tracer) StartSpan(ctx context.Context, spanName string) (context.Context, trace.Span) {
 	if t.Tracer == nil {
 		return ctx, trace.SpanFromContext(ctx)
@@ -132,6 +142,9 @@ func (t *Tracer) StartSpan(ctx context.Context, spanName string) (context.Contex
 	return t.Tracer.Start(ctx, spanName)
 }
 
+// DetachSpanFromContext returns a new background context carrying only the span
+// from ctx. Use this to continue tracing in goroutines that outlive the original
+// request context.
 func (t *Tracer) DetachSpanFromContext(ctx context.Context) context.Context {
 	span := trace.SpanFromContext(ctx)
 	if !span.SpanContext().IsValid() {
@@ -140,6 +153,8 @@ func (t *Tracer) DetachSpanFromContext(ctx context.Context) context.Context {
 	return trace.ContextWithSpan(context.Background(), span)
 }
 
+// HTTPMiddleware is a chi-compatible middleware that creates a server span per
+// request with standard HTTP semantic conventions.
 func (t *Tracer) HTTPMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if t.Tracer == nil {

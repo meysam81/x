@@ -1,3 +1,6 @@
+// Package gin provides an opinionated gin.Engine factory with secure defaults:
+// release mode, discarded writers, nil trusted proxies, recovery middleware,
+// and optional zerolog middleware.
 package gin
 
 import (
@@ -55,6 +58,9 @@ func WithDisableSetModeRelease() func(*options) {
 	}
 }
 
+// NewGin creates a gin.Engine with opinionated secure defaults: release mode,
+// discarded default writers, nil trusted proxies, and recovery middleware.
+// Use functional options to override any of these defaults.
 func NewGin(opts ...func(*options)) *Gin {
 	g := gin.New()
 

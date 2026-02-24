@@ -1,3 +1,6 @@
+// Package downloader provides an HTTP file downloader with parallel chunked
+// downloads, resumable transfers, retry with exponential backoff, and optional
+// SHA256 verification.
 package downloader
 
 import (
@@ -16,6 +19,7 @@ import (
 	"time"
 )
 
+// Config holds the configuration for a download operation.
 type Config struct {
 	URL      string
 	Filepath string
@@ -39,6 +43,7 @@ type Config struct {
 	HTTPClient *http.Client
 }
 
+// Stats contains download statistics returned by GetStats.
 type Stats struct {
 	BytesDownloaded int64
 	BytesTotal      int64
@@ -52,6 +57,8 @@ type Downloader struct {
 	stats  Stats
 }
 
+// New creates a Downloader with the given Config, applying sensible defaults
+// for any zero-value fields.
 func New(config Config) (*Downloader, error) {
 	if config.URL == "" || config.Filepath == "" {
 		return nil, errors.New("URL and Filepath are required")
@@ -104,6 +111,8 @@ func New(config Config) (*Downloader, error) {
 	}, nil
 }
 
+// Download fetches the file, choosing parallel, resumable, or simple strategy
+// based on server capabilities. It verifies the SHA256 checksum if ExpectedSHA256 is set.
 func (d *Downloader) Download(ctx context.Context) error {
 	startTime := time.Now()
 	defer func() {
@@ -564,6 +573,7 @@ func (d *Downloader) exponentialBackoff(attempt int) time.Duration {
 	return wait
 }
 
+// GetStats returns a snapshot of the current download statistics.
 func (d *Downloader) GetStats() Stats {
 	return Stats{
 		BytesDownloaded: atomic.LoadInt64(&d.stats.BytesDownloaded),

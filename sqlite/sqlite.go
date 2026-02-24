@@ -1,3 +1,6 @@
+// Package sqlite provides a SQLite database connection factory with sensible defaults.
+// It uses mattn/go-sqlite3 when CGO is enabled, or modernc.org/sqlite as a pure-Go
+// fallback, selected automatically via build tags.
 package sqlite
 
 import (

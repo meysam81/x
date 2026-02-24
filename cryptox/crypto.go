@@ -1,3 +1,5 @@
+// Package cryptox provides symmetric encryption (AES-256-GCM, ChaCha20-Poly1305)
+// and password-based encryption using Argon2id and PBKDF2 key derivation.
 package cryptox
 
 import (
@@ -27,10 +29,6 @@ var (
 	ErrInvalidKey        = errors.New("invalid key")
 	ErrInvalidNonce      = errors.New("invalid nonce")
 )
-
-// ============================================================================
-// AES-256-GCM Implementation
-// ============================================================================
 
 // AESGCMCipher implements AES-256-GCM encryption
 type AESGCMCipher struct {
@@ -93,13 +91,11 @@ func (c *AESGCMCipher) Encrypt(plaintext []byte) ([]byte, error) {
 		return nil, err
 	}
 
-	// Pre-allocate result slice with exact size needed
 	result := make([]byte, c.nonceSize, c.nonceSize+len(plaintext)+c.tagSize)
 	if _, err := io.ReadFull(rand.Reader, result); err != nil {
 		return nil, err
 	}
 
-	// Use result slice as nonce, then append ciphertext directly
 	ciphertext := aead.Seal(result, result[:c.nonceSize], plaintext, nil)
 	return ciphertext, nil
 }
@@ -121,7 +117,6 @@ func (c *AESGCMCipher) Decrypt(ciphertext []byte) ([]byte, error) {
 	}
 
 	nonce := ciphertext[:c.nonceSize]
-	// Avoid slice copy by using direct slice reference
 	encryptedData := ciphertext[c.nonceSize:]
 
 	plaintext, err := aead.Open(nil, nonce, encryptedData, nil)
@@ -131,10 +126,6 @@ func (c *AESGCMCipher) Decrypt(ciphertext []byte) ([]byte, error) {
 
 	return plaintext, nil
 }
-
-// ============================================================================
-// ChaCha20-Poly1305 Implementation
-// ============================================================================
 
 // ChaCha20Cipher implements ChaCha20-Poly1305 AEAD encryption
 type ChaCha20Cipher struct {
@@ -170,7 +161,6 @@ func (c *ChaCha20Cipher) Encrypt(plaintext []byte) ([]byte, error) {
 		return nil, err
 	}
 
-	// Pre-allocate with exact size needed
 	result := make([]byte, chacha20poly1305.NonceSize, chacha20poly1305.NonceSize+len(plaintext)+16)
 	if _, err := io.ReadFull(rand.Reader, result); err != nil {
 		return nil, err
@@ -192,7 +182,6 @@ func (c *ChaCha20Cipher) Decrypt(ciphertext []byte) ([]byte, error) {
 	}
 
 	nonce := ciphertext[:chacha20poly1305.NonceSize]
-	// Direct slice reference to avoid copy
 	encryptedData := ciphertext[chacha20poly1305.NonceSize:]
 
 	plaintext, err := aead.Open(nil, nonce, encryptedData, nil)
@@ -202,10 +191,6 @@ func (c *ChaCha20Cipher) Decrypt(ciphertext []byte) ([]byte, error) {
 
 	return plaintext, nil
 }
-
-// ============================================================================
-// Argon2id Password-Based Encryption
-// ============================================================================
 
 // Argon2idCipher implements password-based encryption using Argon2id + AES-256-GCM
 type Argon2idCipher struct {
@@ -299,7 +284,6 @@ func (c *Argon2idCipher) Encrypt(plaintext []byte) ([]byte, error) {
 		return nil, err
 	}
 
-	// Pre-allocate result with exact size
 	result := make([]byte, 0, len(salt)+len(encrypted))
 	result = append(result, salt...)
 	result = append(result, encrypted...)
@@ -331,10 +315,6 @@ func (c *Argon2idCipher) Decrypt(ciphertext []byte) ([]byte, error) {
 
 	return aesCipher.Decrypt(encryptedData)
 }
-
-// ============================================================================
-// PBKDF2 Password-Based Encryption
-// ============================================================================
 
 // PBKDF2Cipher implements password-based encryption using PBKDF2 + AES-256-GCM
 type PBKDF2Cipher struct {
@@ -421,7 +401,6 @@ func (c *PBKDF2Cipher) Encrypt(plaintext []byte) ([]byte, error) {
 		return nil, err
 	}
 
-	// Pre-allocate result with exact size
 	result := make([]byte, 0, len(salt)+len(encrypted))
 	result = append(result, salt...)
 	result = append(result, encrypted...)
@@ -453,10 +432,6 @@ func (c *PBKDF2Cipher) Decrypt(ciphertext []byte) ([]byte, error) {
 
 	return aesCipher.Decrypt(encryptedData)
 }
-
-// ============================================================================
-// Helper Functions
-// ============================================================================
 
 // GenerateKey generates a cryptographically secure random key
 func GenerateKey(size int) ([]byte, error) {

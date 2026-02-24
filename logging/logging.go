@@ -1,24 +1,5 @@
-// Package logging provides a configurable logger based on zerolog with options for log level,
-// colored output, custom parts order, and time format.
-//
-// LogLevel represents the severity of the log message.
-// Accepted values for log level (case-insensitive):
-//   - "debug"
-//   - "info"
-//   - "warn"
-//   - "error"
-//   - "critical"
-//
-// Invalid log level values will be silently ignored and the default level will be used.
-//
-// Options can be set using functional options:
-//   - WithLogLevel(level string): sets the log level. Accepted values are listed above.
-//   - WithColors(): enables colored log output.
-//   - WithPartsOrder(p []string): sets the order of log parts (fields).
-//   - WithTimeFormat(t string): sets the time format for log timestamps.
-//
-// NewLogger(opts ...func(*options)) Logger creates a new logger instance with the provided options.
-// If an option is not set, a default value will be used.
+// Package logging provides a configurable zerolog-based logger with
+// functional options for log level, colored output, parts order, and time format.
 package logging
 
 import (
@@ -50,6 +31,9 @@ type options struct {
 	timeFormat  string
 }
 
+// WithLogLevel returns an option that sets the log level.
+// Accepted values (case-insensitive): "debug", "info", "warn", "error", "critical".
+// Unrecognized values are silently ignored and the default level (info) is used.
 func WithLogLevel(level string) func(*options) {
 	return func(o *options) {
 		l := strings.ToLower(level)
@@ -83,6 +67,7 @@ func WithTimeFormat(t string) func(*options) {
 	}
 }
 
+// NewLogger creates a Logger with the given functional options, falling back to sensible defaults.
 func NewLogger(opts ...func(*options)) Logger {
 	o := &options{
 		logLevel:    zerolog.InfoLevel,

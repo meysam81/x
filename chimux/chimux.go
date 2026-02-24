@@ -1,3 +1,6 @@
+// Package chimux provides an opinionated chi router factory with built-in
+// middleware for recovery, real IP, structured logging, Prometheus metrics,
+// and health checks.
 package chimux
 
 import (
@@ -91,6 +94,9 @@ func WithLogHealthRequests() func(*options) {
 	}
 }
 
+// NewChi creates a chi.Mux with opinionated defaults: CleanPath, RealIP, and
+// Recoverer middleware are enabled out of the box. Use option functions to add
+// structured logging, Prometheus metrics, health checks, or disable defaults.
 func NewChi(opts ...func(*options)) *chi.Mux {
 	o := &options{
 		disableRecoveryMiddleware: false,

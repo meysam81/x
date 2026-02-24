@@ -1,3 +1,4 @@
+// Package httputils provides HTTP middleware utilities for the standard net/http package.
 package httputils
 
 import (
@@ -8,6 +9,9 @@ import (
 	"time"
 )
 
+// LoggingMiddleware wraps an http.HandlerFunc to log the method, path,
+// status code, request/response headers, and latency for each request.
+// Authorization headers are omitted from the log output.
 func LoggingMiddleware(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		startTime := time.Now()
