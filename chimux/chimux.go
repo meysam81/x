@@ -4,6 +4,8 @@
 package chimux
 
 import (
+	"strings"
+
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -15,15 +17,16 @@ type options struct {
 	disableRecoveryMiddleware bool
 	disableCleanPath          bool
 	disableRealIP             bool
-	enableLoggingMiddleware   bool
-	logger                    *logging.Logger
-	disableLogHeaders         bool
-	enableMetrics             bool
-	enableHealthz             bool
 
+	enableLoggingMiddleware bool
+	logger                  *logging.Logger
+	headerLogMode           headerLogMode
+	extraLogHeaders         map[string]struct{}
+
+	enableMetrics        bool
+	enableHealthz        bool
 	enableHealthzLogging bool
 	healthzEndpoint      string
-
 	enableMetricsLogging bool
 	metricsEndpoint      string
 }
@@ -60,7 +63,7 @@ func WithLogger(l *logging.Logger) func(*options) {
 
 func WithDisableLogHeaders() func(*options) {
 	return func(o *options) {
-		o.disableLogHeaders = true
+		o.headerLogMode = headerLogNone
 	}
 }
 
@@ -94,6 +97,27 @@ func WithLogHealthRequests() func(*options) {
 	}
 }
 
+// WithLogAllHeaders configures the logger to include every request header.
+// Sensitive headers are still masked.
+func WithLogAllHeaders() func(*options) {
+	return func(o *options) {
+		o.headerLogMode = headerLogAll
+	}
+}
+
+// WithLogHeaders adds extra headers to the default logging set.
+// Header names are case-insensitive.
+func WithLogHeaders(headers ...string) func(*options) {
+	return func(o *options) {
+		if o.extraLogHeaders == nil {
+			o.extraLogHeaders = make(map[string]struct{})
+		}
+		for _, h := range headers {
+			o.extraLogHeaders[strings.ToLower(h)] = struct{}{}
+		}
+	}
+}
+
 // NewChi creates a chi.Mux with opinionated defaults: CleanPath, RealIP, and
 // Recoverer middleware are enabled out of the box. Use option functions to add
 // structured logging, Prometheus metrics, health checks, or disable defaults.
@@ -101,7 +125,7 @@ func NewChi(opts ...func(*options)) *chi.Mux {
 	o := &options{
 		disableRecoveryMiddleware: false,
 		enableLoggingMiddleware:   false,
-		disableLogHeaders:         false,
+		headerLogMode:             headerLogDefault,
 		enableMetrics:             false,
 		healthzEndpoint:           "/healthz",
 		metricsEndpoint:           "/metrics",
