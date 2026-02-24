@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.12.5](https://github.com/meysam81/x/compare/config-v1.12.4...config-v1.12.5) (2026-02-24)
+
+
+### Bug Fixes
+
+* add go doc to modules ([c186d76](https://github.com/meysam81/x/commit/c186d7656f8574fba53da28232d13453d75c3d3c))
+* **config:** update go.sum ([a3bd25e](https://github.com/meysam81/x/commit/a3bd25e9a89b59eaf4c93b49ca7c5f9d74adddd3))
+
 ## [1.12.4](https://github.com/meysam81/x/compare/config-v1.12.3...config-v1.12.4) (2026-02-19)
 
 
