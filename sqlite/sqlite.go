@@ -51,23 +51,29 @@ func WithJournalMode(journalMode string) func(*connectionOption) {
 }
 
 // NewDB creates a new SQLite database connection with the specified options.
-// Provide the filepath only as the relative or absolute path to the database file.
-// For example "test.db", "./my/relative/path/to/test.db", or "/absolute/path/to/test.db".
+// Provide the filepath as a relative or absolute path to the database file,
+// or use ":memory:" for an in-memory database.
+// For example "test.db", "./my/relative/path/to/test.db", "/absolute/path/to/test.db",
+// or ":memory:".
 // For options, you can use the provided functions to set the connection parameters.
 func NewDB(ctx context.Context, filepath string, opts ...func(*connectionOption)) (*sql.DB, error) {
 	if filepath == "" {
 		return nil, errors.New("filepath is empty")
 	}
 
-	_, err := os.OpenFile(filepath, os.O_RDWR, 0644)
-	if err != nil {
-		if os.IsNotExist(err) {
-			_, err = os.Create(filepath)
-			if err != nil {
+	inMemory := filepath == ":memory:"
+
+	if !inMemory {
+		_, err := os.OpenFile(filepath, os.O_RDWR, 0644)
+		if err != nil {
+			if os.IsNotExist(err) {
+				_, err = os.Create(filepath)
+				if err != nil {
+					return nil, err
+				}
+			} else {
 				return nil, err
 			}
-		} else {
-			return nil, err
 		}
 	}
 
@@ -78,28 +84,28 @@ func NewDB(ctx context.Context, filepath string, opts ...func(*connectionOption)
 		mode:            "rwc",
 		journalMode:     "wal",
 	}
+	if inMemory {
+		options.mode = "memory"
+		options.journalMode = ""
+	}
 	for _, opt := range opts {
 		opt(options)
 	}
 
-	params := make([]string, 2)
+	params := make([]string, 0, 2)
 
-	query := false
 	if options.mode != "" {
 		params = append(params, "mode="+options.mode)
-		query = true
 	}
 
 	if options.journalMode != "" {
 		params = append(params, "journal_mode="+options.journalMode)
-		query = true
 	}
 
 	dsn := filepath
 
-	o := strings.Join(params, "&")
-	if query && o != "" {
-		dsn += "?" + o
+	if len(params) > 0 {
+		dsn += "?" + strings.Join(params, "&")
 	}
 
 	db, err := sql.Open(ENGINE, dsn)
