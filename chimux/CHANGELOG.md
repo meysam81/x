@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.14.1](https://github.com/meysam81/x/compare/chimux-v1.14.0...chimux-v1.14.1) (2026-03-05)
+
+
+### Bug Fixes
+
+* **chimux:** increase severity on http status code increase ([aabd43e](https://github.com/meysam81/x/commit/aabd43ea8fe4dcebf17336ab1e43c977b0425f61))
+
 ## [1.14.0](https://github.com/meysam81/x/compare/chimux-v1.13.1...chimux-v1.14.0) (2026-02-24)
 
 
