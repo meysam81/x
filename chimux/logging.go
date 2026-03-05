@@ -8,6 +8,8 @@ import (
 	"time"
 
 	"github.com/go-chi/chi/v5/middleware"
+
+	"github.com/meysam81/x/logging"
 )
 
 type headerLogMode int
@@ -98,12 +100,24 @@ func (l *logRequest) log() func(next http.Handler) http.Handler {
 				return
 			}
 
-			event := l.o.logger.Info().
+			status := ww.Status()
+
+			var event *logging.Event
+			switch {
+			case status >= 500:
+				event = l.o.logger.Error()
+			case status >= 400:
+				event = l.o.logger.Warn()
+			default:
+				event = l.o.logger.Info()
+			}
+
+			event = event.
 				Int("bytes", ww.BytesWritten()).
 				Str("duration", time.Since(start).String()).
 				Str("method", r.Method).
 				Str("path", r.URL.Path).
-				Int("status", ww.Status()).
+				Int("status", status).
 				Str("remote_addr", r.RemoteAddr).
 				Str("user_agent", r.UserAgent())
 
