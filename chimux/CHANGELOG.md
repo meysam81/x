@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.14.1](https://github.com/meysam81/x/compare/chimux-v1.14.0...chimux-v1.14.1) (2026-03-10)
+
+
+### Bug Fixes
+
+* **chimux:** add type alias for func options ([6989987](https://github.com/meysam81/x/commit/698998704ca91dc286f3e0647d9107ed7b1a75ff))
+* **chimux:** increase severity on http status code increase ([aabd43e](https://github.com/meysam81/x/commit/aabd43ea8fe4dcebf17336ab1e43c977b0425f61))
+* export options for downstream clients ([7b2a407](https://github.com/meysam81/x/commit/7b2a407f944777b6e85d71ea977e7aa91cd465f8))
+
 ## [1.14.0](https://github.com/meysam81/x/compare/chimux-v1.13.1...chimux-v1.14.0) (2026-02-24)
 
 
