@@ -1,5 +1,5 @@
 {
-  "chimux": "1.14.0",
+  "chimux": "1.14.1",
   "config": "1.12.5",
   "cryptox": "1.12.4",
   "downloader": "1.12.3",
@@ -8,6 +8,6 @@
   "logging": "1.12.3",
   "ratelimit": "1.12.4",
   "smtpclient": "1.12.3",
-  "sqlite": "1.12.4",
+  "sqlite": "1.12.5",
   "tracing": "1.12.5"
 }

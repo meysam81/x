@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.12.5](https://github.com/meysam81/x/compare/sqlite-v1.12.4...sqlite-v1.12.5) (2026-03-10)
+
+
+### Bug Fixes
+
+* **sqlite:** allow in-memory dsn ([e280136](https://github.com/meysam81/x/commit/e2801366db35cf8f48c9d7ba75593aa4185eeed5))
+
 ## [1.12.4](https://github.com/meysam81/x/compare/sqlite-v1.12.3...sqlite-v1.12.4) (2026-02-24)
 
 
