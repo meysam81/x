@@ -26,7 +26,7 @@ func TestShouldLogHeader(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			l := &logRequest{o: &Options{
+			l := &logRequest{o: &options{
 				headerLogMode:   tt.mode,
 				extraLogHeaders: tt.extra,
 			}}
