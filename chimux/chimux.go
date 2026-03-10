@@ -13,7 +13,7 @@ import (
 	"github.com/meysam81/x/logging"
 )
 
-type options struct {
+type Options struct {
 	disableRecoveryMiddleware bool
 	disableCleanPath          bool
 	disableRealIP             bool
@@ -31,84 +31,84 @@ type options struct {
 	metricsEndpoint      string
 }
 
-func WithDisableRecoveryMiddleware() func(*options) {
-	return func(o *options) {
+func WithDisableRecoveryMiddleware() func(*Options) {
+	return func(o *Options) {
 		o.disableRecoveryMiddleware = true
 	}
 }
 
-func WithDisableCleanPath() func(*options) {
-	return func(o *options) {
+func WithDisableCleanPath() func(*Options) {
+	return func(o *Options) {
 		o.disableCleanPath = true
 	}
 }
 
-func WithDisableRealIP() func(*options) {
-	return func(o *options) {
+func WithDisableRealIP() func(*Options) {
+	return func(o *Options) {
 		o.disableRealIP = true
 	}
 }
 
-func WithLoggingMiddleware() func(*options) {
-	return func(o *options) {
+func WithLoggingMiddleware() func(*Options) {
+	return func(o *Options) {
 		o.enableLoggingMiddleware = true
 	}
 }
 
-func WithLogger(l *logging.Logger) func(*options) {
-	return func(o *options) {
+func WithLogger(l *logging.Logger) func(*Options) {
+	return func(o *Options) {
 		o.logger = l
 	}
 }
 
-func WithDisableLogHeaders() func(*options) {
-	return func(o *options) {
+func WithDisableLogHeaders() func(*Options) {
+	return func(o *Options) {
 		o.headerLogMode = headerLogNone
 	}
 }
 
-func WithMetrics() func(*options) {
-	return func(o *options) {
+func WithMetrics() func(*Options) {
+	return func(o *Options) {
 		o.enableMetrics = true
 	}
 }
 
-func WithHealthz() func(*options) {
-	return func(o *options) {
+func WithHealthz() func(*Options) {
+	return func(o *Options) {
 		o.enableHealthz = true
 	}
 }
 
-func WithHealthEndpoint(uri string) func(*options) {
-	return func(o *options) {
+func WithHealthEndpoint(uri string) func(*Options) {
+	return func(o *Options) {
 		o.healthzEndpoint = uri
 	}
 }
 
-func WithMetricsEndpoint(uri string) func(*options) {
-	return func(o *options) {
+func WithMetricsEndpoint(uri string) func(*Options) {
+	return func(o *Options) {
 		o.metricsEndpoint = uri
 	}
 }
 
-func WithLogHealthRequests() func(*options) {
-	return func(o *options) {
+func WithLogHealthRequests() func(*Options) {
+	return func(o *Options) {
 		o.enableHealthzLogging = true
 	}
 }
 
 // WithLogAllHeaders configures the logger to include every request header.
 // Sensitive headers are still masked.
-func WithLogAllHeaders() func(*options) {
-	return func(o *options) {
+func WithLogAllHeaders() func(*Options) {
+	return func(o *Options) {
 		o.headerLogMode = headerLogAll
 	}
 }
 
 // WithLogHeaders adds extra headers to the default logging set.
 // Header names are case-insensitive.
-func WithLogHeaders(headers ...string) func(*options) {
-	return func(o *options) {
+func WithLogHeaders(headers ...string) func(*Options) {
+	return func(o *Options) {
 		if o.extraLogHeaders == nil {
 			o.extraLogHeaders = make(map[string]struct{})
 		}
@@ -121,8 +121,8 @@ func WithLogHeaders(headers ...string) func(*options) {
 // NewChi creates a chi.Mux with opinionated defaults: CleanPath, RealIP, and
 // Recoverer middleware are enabled out of the box. Use option functions to add
 // structured logging, Prometheus metrics, health checks, or disable defaults.
-func NewChi(opts ...func(*options)) *chi.Mux {
-	o := &options{
+func NewChi(opts ...func(*Options)) *chi.Mux {
+	o := &Options{
 		disableRecoveryMiddleware: false,
 		enableLoggingMiddleware:   false,
 		headerLogMode:             headerLogDefault,

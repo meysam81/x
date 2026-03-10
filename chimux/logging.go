@@ -38,7 +38,7 @@ var defaultLogHeaders = map[string]struct{}{
 	"x-request-id":      {},
 }
 
-type logRequest struct{ o *options }
+type logRequest struct{ o *Options }
 
 func (l *logRequest) shouldSkip(r *http.Request) bool {
 	if !l.o.enableHealthzLogging && r.URL.Path == l.o.healthzEndpoint {
@@ -147,7 +147,7 @@ func (l *logRequest) log() func(next http.Handler) http.Handler {
 	}
 }
 
-func loggingMiddleware(o *options) func(next http.Handler) http.Handler {
+func loggingMiddleware(o *Options) func(next http.Handler) http.Handler {
 	l := &logRequest{o}
 	return l.log()
 }
