@@ -2,7 +2,7 @@ module github.com/meysam81/x/ratelimit
 
 go 1.25.0
 
-require github.com/redis/go-redis/v9 v9.18.0
+require github.com/redis/go-redis/v9 v9.20.0
 
 require (
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
