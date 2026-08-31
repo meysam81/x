@@ -4,7 +4,7 @@ go 1.25.0
 
 require (
 	github.com/go-chi/chi/v5 v5.2.5
-	github.com/meysam81/x/logging v0.0.0-20260305045513-aabd43ea8fe4
+	github.com/meysam81/x/logging v0.0.0-20260310092240-698998704ca9
 	github.com/prometheus/client_golang v1.23.2
 )
 
