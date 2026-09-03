@@ -5,9 +5,25 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/go-chi/chi/v5"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
 )
+
+// routePattern returns the chi route pattern that served r, so the path
+// label is bounded by the router's route table instead of by whatever the
+// internet sends. Requests no route matched (404s, scanner probes) collapse
+// into "unmatched". Falls back to the raw path only when chi did not run.
+func routePattern(r *http.Request) string {
+	rctx := chi.RouteContext(r.Context())
+	if rctx == nil {
+		return r.URL.Path
+	}
+	if p := rctx.RoutePattern(); p != "" {
+		return p
+	}
+	return "unmatched"
+}
 
 type metrics struct {
 	// Traffic: Rate of requests
@@ -129,7 +145,7 @@ func (m *metrics) middleware(next http.Handler) http.Handler {
 
 		defer func() {
 			duration := time.Since(start)
-			m.RecordRequest(r.Method, r.URL.Path, wrapped.statusCode, duration)
+			m.RecordRequest(r.Method, routePattern(r), wrapped.statusCode, duration)
 		}()
 
 		m.IncrementInFlight()
