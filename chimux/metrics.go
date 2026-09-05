@@ -37,7 +37,6 @@ type metrics struct {
 
 	// Saturation: Resource utilization
 	httpRequestsInFlight prometheus.Gauge
-	activeConnections    prometheus.Gauge
 }
 
 func newMetrics() *metrics {
@@ -73,13 +72,6 @@ func newMetrics() *metrics {
 				Help: "Number of HTTP requests currently being processed",
 			},
 		),
-
-		activeConnections: promauto.NewGauge(
-			prometheus.GaugeOpts{
-				Name: "http_active_connections",
-				Help: "Number of active HTTP connections",
-			},
-		),
 	}
 }
 
@@ -103,10 +95,6 @@ func (m *metrics) IncrementInFlight() {
 
 func (m *metrics) DecrementInFlight() {
 	m.httpRequestsInFlight.Dec()
-}
-
-func (m *metrics) SetActiveConnections(count float64) {
-	m.activeConnections.Set(count)
 }
 
 func getStatusClass(statusCode int) string {
