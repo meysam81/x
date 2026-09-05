@@ -207,8 +207,8 @@ func NewChi(opts ...Option) *chi.Mux {
 	}
 
 	if o.enableMetrics {
-		m := newMetrics()
-		r.Use(m.middleware)
+		m := sharedMetrics()
+		r.Use(m.middleware(metricsSkipPaths(o)))
 		r.Get(o.metricsEndpoint, promhttp.Handler().ServeHTTP)
 	}
 
