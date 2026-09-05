@@ -218,3 +218,27 @@ func TestReadyzDedupesInFlightChecks(t *testing.T) {
 		t.Errorf("NumGoroutine before=%d after=%d, want at most +1 (one goroutine for the wedged check)", before, after)
 	}
 }
+
+// TestWithReadyzTimeoutPanicsOnNonPositiveDuration asserts a misconfigured
+// timeout is caught loudly at construction instead of silently making
+// /readyz permanently return 503.
+func TestWithReadyzTimeoutPanicsOnNonPositiveDuration(t *testing.T) {
+	tests := []struct {
+		name string
+		d    time.Duration
+	}{
+		{"zero", 0},
+		{"negative", -time.Second},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			defer func() {
+				if recover() == nil {
+					t.Fatal("WithReadyzTimeout did not panic on a non-positive duration")
+				}
+			}()
+			WithReadyzTimeout(tt.d)
+		})
+	}
+}

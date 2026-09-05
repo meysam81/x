@@ -4,6 +4,7 @@
 package chimux
 
 import (
+	"fmt"
 	"strings"
 	"time"
 
@@ -127,8 +128,14 @@ func WithReadyzEndpoint(uri string) Option {
 
 // WithReadyzTimeout overrides the default per-check timeout (2s) used by
 // WithReadyz. Each check gets its own timeout, derived independently from
-// the incoming request's context.
+// the incoming request's context. Panics if d is not positive: a
+// non-positive timeout would make every readiness check fail immediately on
+// every request, which is a configuration mistake best caught loudly at
+// startup rather than silently producing permanent 503s.
 func WithReadyzTimeout(d time.Duration) Option {
+	if d <= 0 {
+		panic(fmt.Sprintf("chimux: WithReadyzTimeout: duration must be positive, got %s", d))
+	}
 	return func(o *options) {
 		o.readyzTimeout = d
 	}
