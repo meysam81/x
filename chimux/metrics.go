@@ -2,6 +2,7 @@ package chimux
 
 import (
 	"net/http"
+	"path"
 	"strconv"
 	"sync"
 	"time"
@@ -165,7 +166,9 @@ func (rw *responseWriter) WriteHeader(code int) {
 func (m *metrics) middleware(skip map[string]struct{}) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			if _, ok := skip[r.URL.Path]; ok {
+			// path.Clean: CleanPath rewrites the route path, not r.URL.Path, so
+			// "/healthz/" and "//healthz" reach the handler with the raw path.
+			if _, ok := skip[path.Clean(r.URL.Path)]; ok {
 				next.ServeHTTP(w, r)
 				return
 			}

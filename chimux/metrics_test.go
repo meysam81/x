@@ -28,7 +28,7 @@ func TestMetrics(t *testing.T) {
 	matchedBefore := testutil.ToFloat64(m.httpRequestsTotal.WithLabelValues("GET", "/api/domains/{domain}/health", "200"))
 	unmatchedBefore := testutil.ToFloat64(m.httpRequestsTotal.WithLabelValues("GET", "unmatched", "404"))
 
-	for _, p := range []string{"/api/domains/a.com/health", "/api/domains/b.com/health", "/does/not/exist", "/healthz", "/readyz"} {
+	for _, p := range []string{"/api/domains/a.com/health", "/api/domains/b.com/health", "/does/not/exist", "/healthz", "/readyz", "/healthz/", "//readyz"} {
 		resp, err := http.Get(srv.URL + p) //nolint:gosec // test server URL
 		if err != nil {
 			t.Fatal(err)
@@ -58,6 +58,13 @@ func TestMetrics(t *testing.T) {
 		}
 		if strings.Contains(body, `path="/readyz"`) {
 			t.Error("http_requests_total must not have a series for /readyz")
+		}
+		// CleanPath rewrites the route path only; the raw path still reaches
+		// the middleware and must be normalised before the skip lookup.
+		for _, raw := range []string{`path="/healthz/"`, `path="//readyz"`} {
+			if strings.Contains(body, raw) {
+				t.Errorf("http_requests_total must not have a series for %s", raw)
+			}
 		}
 	})
 

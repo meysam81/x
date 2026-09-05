@@ -8,6 +8,8 @@ import (
 	"net/http/httptest"
 	"runtime"
 	"strings"
+	"sync"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -178,11 +180,13 @@ func TestReadyzDedupesInFlightChecks(t *testing.T) {
 	const timeout = 30 * time.Millisecond
 
 	block := make(chan struct{}) // never closed: the check blocks forever
+	var invocations atomic.Int32
 
 	r := NewChi(
 		WithReadyz(ReadyCheck{
 			Name: "wedged",
 			Check: func(context.Context) error {
+				invocations.Add(1)
 				<-block // deliberately ignores ctx
 				return nil
 			},
@@ -194,20 +198,45 @@ func TestReadyzDedupesInFlightChecks(t *testing.T) {
 	time.Sleep(20 * time.Millisecond)
 	before := runtime.NumGoroutine()
 
+	// 50 requests released at once, then 10 more in sequence: whichever way
+	// they arrive, the wedged check runs exactly once and every request
+	// still gets its 503 within the timeout.
+	const parallel = 50
+	start := make(chan struct{})
+	var wg sync.WaitGroup
+	codes := make([]int, parallel)
+	for i := 0; i < parallel; i++ {
+		wg.Add(1)
+		go func(i int) {
+			defer wg.Done()
+			<-start
+			w := httptest.NewRecorder()
+			r.ServeHTTP(w, httptest.NewRequest(http.MethodGet, "/readyz", nil))
+			codes[i] = w.Code
+		}(i)
+	}
+	close(start)
+	wg.Wait()
+	for i, c := range codes {
+		if c != http.StatusServiceUnavailable {
+			t.Fatalf("parallel request %d: status = %d, want 503", i, c)
+		}
+	}
+
 	for i := 0; i < 10; i++ {
-		req := httptest.NewRequest(http.MethodGet, "/readyz", nil)
 		w := httptest.NewRecorder()
-
-		start := time.Now()
-		r.ServeHTTP(w, req)
-		elapsed := time.Since(start)
-
+		began := time.Now()
+		r.ServeHTTP(w, httptest.NewRequest(http.MethodGet, "/readyz", nil))
 		if w.Code != http.StatusServiceUnavailable {
 			t.Fatalf("request %d: status = %d, want 503 (body=%s)", i, w.Code, w.Body.String())
 		}
-		if elapsed > 2500*time.Millisecond {
+		if elapsed := time.Since(began); elapsed > 2500*time.Millisecond {
 			t.Fatalf("request %d took %s, want well under 2.5s", i, elapsed)
 		}
+	}
+
+	if n := invocations.Load(); n != 1 {
+		t.Errorf("check invoked %d times, want exactly 1 (one shared in-flight run)", n)
 	}
 
 	runtime.GC()
