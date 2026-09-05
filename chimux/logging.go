@@ -3,6 +3,7 @@ package chimux
 import (
 	"fmt"
 	"net/http"
+	"path"
 	"sort"
 	"strings"
 	"time"
@@ -41,11 +42,16 @@ var defaultLogHeaders = map[string]struct{}{
 type logRequest struct{ o *options }
 
 func (l *logRequest) shouldSkip(r *http.Request) bool {
-	if !l.o.enableHealthzLogging && r.URL.Path == l.o.healthzEndpoint {
+	reqPath := path.Clean(r.URL.Path)
+	if !l.o.enableHealthzLogging && reqPath == l.o.healthzEndpoint {
 		return true
 	}
 
-	if !l.o.enableMetricsLogging && r.URL.Path == l.o.metricsEndpoint {
+	if !l.o.enableMetricsLogging && reqPath == l.o.metricsEndpoint {
+		return true
+	}
+
+	if reqPath == l.o.readyzEndpoint {
 		return true
 	}
 

@@ -1,10 +1,12 @@
 // Package chimux provides an opinionated chi router factory with built-in
 // middleware for recovery, real IP, structured logging, Prometheus metrics,
-// and health checks.
+// and health/readiness checks.
 package chimux
 
 import (
+	"fmt"
 	"strings"
+	"time"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -31,6 +33,12 @@ type options struct {
 	healthzEndpoint      string
 	enableMetricsLogging bool
 	metricsEndpoint      string
+
+	enableReadyz   bool
+	readyzEndpoint string
+	readyChecks    []ReadyCheck
+	readyzTimeout  time.Duration
+	readyzRunner   *readyzRunner
 }
 
 func WithDisableRecoveryMiddleware() Option {
@@ -99,6 +107,40 @@ func WithLogHealthRequests() Option {
 	}
 }
 
+// WithReadyz registers a GET handler on the readyz endpoint (see
+// WithReadyzEndpoint) that runs every ReadyCheck concurrently on each
+// request. Calling WithReadyz more than once appends to the check list
+// instead of replacing it.
+func WithReadyz(checks ...ReadyCheck) Option {
+	return func(o *options) {
+		o.enableReadyz = true
+		o.readyChecks = append(o.readyChecks, checks...)
+	}
+}
+
+// WithReadyzEndpoint overrides the default "/readyz" path registered by
+// WithReadyz.
+func WithReadyzEndpoint(uri string) Option {
+	return func(o *options) {
+		o.readyzEndpoint = uri
+	}
+}
+
+// WithReadyzTimeout overrides the default per-check timeout (2s) used by
+// WithReadyz. Each check gets its own timeout, derived independently from
+// the incoming request's context. Panics if d is not positive: a
+// non-positive timeout would make every readiness check fail immediately on
+// every request, which is a configuration mistake best caught loudly at
+// startup rather than silently producing permanent 503s.
+func WithReadyzTimeout(d time.Duration) Option {
+	if d <= 0 {
+		panic(fmt.Sprintf("chimux: WithReadyzTimeout: duration must be positive, got %s", d))
+	}
+	return func(o *options) {
+		o.readyzTimeout = d
+	}
+}
+
 // WithLogAllHeaders configures the logger to include every request header.
 // Sensitive headers are still masked.
 func WithLogAllHeaders() Option {
@@ -122,7 +164,8 @@ func WithLogHeaders(headers ...string) Option {
 
 // NewChi creates a chi.Mux with opinionated defaults: CleanPath, RealIP, and
 // Recoverer middleware are enabled out of the box. Use option functions to add
-// structured logging, Prometheus metrics, health checks, or disable defaults.
+// structured logging, Prometheus metrics, health checks, readiness checks, or
+// disable defaults.
 func NewChi(opts ...Option) *chi.Mux {
 	o := &options{
 		disableRecoveryMiddleware: false,
@@ -131,6 +174,9 @@ func NewChi(opts ...Option) *chi.Mux {
 		enableMetrics:             false,
 		healthzEndpoint:           "/healthz",
 		metricsEndpoint:           "/metrics",
+		readyzEndpoint:            "/readyz",
+		readyzTimeout:             defaultReadyzTimeout,
+		readyzRunner:              &readyzRunner{inflight: make(map[string]*readyRun)},
 	}
 
 	for _, opt := range opts {
@@ -161,13 +207,17 @@ func NewChi(opts ...Option) *chi.Mux {
 	}
 
 	if o.enableMetrics {
-		m := newMetrics()
-		r.Use(m.middleware)
+		m := sharedMetrics()
+		r.Use(m.middleware(metricsSkipPaths(o)))
 		r.Get(o.metricsEndpoint, promhttp.Handler().ServeHTTP)
 	}
 
 	if o.enableHealthz {
 		r.Get(o.healthzEndpoint, healthCheck)
+	}
+
+	if o.enableReadyz {
+		r.Get(o.readyzEndpoint, readyzHandler(o))
 	}
 
 	return r

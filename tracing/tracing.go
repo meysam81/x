@@ -15,7 +15,7 @@ import (
 	"go.opentelemetry.io/otel/propagation"
 	"go.opentelemetry.io/otel/sdk/resource"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
-	semconv "go.opentelemetry.io/otel/semconv/v1.34.0"
+	semconv "go.opentelemetry.io/otel/semconv/v1.39.0"
 	"go.opentelemetry.io/otel/trace"
 
 	"github.com/go-chi/chi/v5/middleware"
@@ -51,7 +51,7 @@ func NewTracer(ctx context.Context, config *TracingConfig, logger *logging.Logge
 	opts := []otlptracehttp.Option{}
 
 	if config.OTLPEndpointURL != "" {
-		otlptracehttp.WithEndpointURL(config.OTLPEndpointURL)
+		opts = append(opts, otlptracehttp.WithEndpointURL(config.OTLPEndpointURL))
 	}
 
 	exporter, err := otlptracehttp.New(ctx, opts...)

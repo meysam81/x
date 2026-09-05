@@ -2,7 +2,9 @@ package chimux
 
 import (
 	"net/http"
+	"path"
 	"strconv"
+	"sync"
 	"time"
 
 	"github.com/go-chi/chi/v5"
@@ -25,6 +27,22 @@ func routePattern(r *http.Request) string {
 	return "unmatched"
 }
 
+// metricsSkipPaths returns the paths this router's RED middleware should
+// not record: the metrics endpoint itself, plus healthz/readyz when
+// enabled. Mirrors logRequest.shouldSkip's access-log exclusions, so a 2s
+// liveness/readiness probe period does not show up as synthetic traffic in
+// http_requests_total.
+func metricsSkipPaths(o *options) map[string]struct{} {
+	skip := map[string]struct{}{o.metricsEndpoint: {}}
+	if o.enableHealthz {
+		skip[o.healthzEndpoint] = struct{}{}
+	}
+	if o.enableReadyz {
+		skip[o.readyzEndpoint] = struct{}{}
+	}
+	return skip
+}
+
 type metrics struct {
 	// Traffic: Rate of requests
 	httpRequestsTotal prometheus.CounterVec
@@ -37,7 +55,24 @@ type metrics struct {
 
 	// Saturation: Resource utilization
 	httpRequestsInFlight prometheus.Gauge
-	activeConnections    prometheus.Gauge
+}
+
+var (
+	sharedMetricsOnce sync.Once
+	sharedMetricsInst *metrics
+)
+
+// sharedMetrics returns the process-wide RED metrics collectors, creating
+// them on first use. promauto registers on Prometheus's global default
+// registry (kept deliberately, so the default go_/process_ collectors still
+// appear on /metrics), and registering the same collector name twice
+// panics -- so every NewChi(WithMetrics()) router in this process shares
+// this one instance instead of each constructing its own.
+func sharedMetrics() *metrics {
+	sharedMetricsOnce.Do(func() {
+		sharedMetricsInst = newMetrics()
+	})
+	return sharedMetricsInst
 }
 
 func newMetrics() *metrics {
@@ -73,13 +108,6 @@ func newMetrics() *metrics {
 				Help: "Number of HTTP requests currently being processed",
 			},
 		),
-
-		activeConnections: promauto.NewGauge(
-			prometheus.GaugeOpts{
-				Name: "http_active_connections",
-				Help: "Number of active HTTP connections",
-			},
-		),
 	}
 }
 
@@ -103,10 +131,6 @@ func (m *metrics) IncrementInFlight() {
 
 func (m *metrics) DecrementInFlight() {
 	m.httpRequestsInFlight.Dec()
-}
-
-func (m *metrics) SetActiveConnections(count float64) {
-	m.activeConnections.Set(count)
 }
 
 func getStatusClass(statusCode int) string {
@@ -134,23 +158,37 @@ func (rw *responseWriter) WriteHeader(code int) {
 	rw.ResponseWriter.WriteHeader(code)
 }
 
-func (m *metrics) middleware(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		start := time.Now()
+// middleware returns chi middleware recording RED metrics for every request
+// whose path is not in skip (e.g. the metrics/healthz/readyz endpoints of
+// the router it is attached to -- see metricsSkipPaths). A skipped request
+// still runs normally; it is just not counted, timed, or held against the
+// in-flight gauge.
+func (m *metrics) middleware(skip map[string]struct{}) func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			// path.Clean: CleanPath rewrites the route path, not r.URL.Path, so
+			// "/healthz/" and "//healthz" reach the handler with the raw path.
+			if _, ok := skip[path.Clean(r.URL.Path)]; ok {
+				next.ServeHTTP(w, r)
+				return
+			}
 
-		wrapped := &responseWriter{
-			ResponseWriter: w,
-			statusCode:     200,
-		}
+			start := time.Now()
 
-		defer func() {
-			duration := time.Since(start)
-			m.RecordRequest(r.Method, routePattern(r), wrapped.statusCode, duration)
-		}()
+			wrapped := &responseWriter{
+				ResponseWriter: w,
+				statusCode:     200,
+			}
 
-		m.IncrementInFlight()
-		defer m.DecrementInFlight()
+			defer func() {
+				duration := time.Since(start)
+				m.RecordRequest(r.Method, routePattern(r), wrapped.statusCode, duration)
+			}()
 
-		next.ServeHTTP(wrapped, r)
-	})
+			m.IncrementInFlight()
+			defer m.DecrementInFlight()
+
+			next.ServeHTTP(wrapped, r)
+		})
+	}
 }
