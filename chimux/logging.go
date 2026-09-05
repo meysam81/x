@@ -49,6 +49,10 @@ func (l *logRequest) shouldSkip(r *http.Request) bool {
 		return true
 	}
 
+	if r.URL.Path == l.o.readyzEndpoint {
+		return true
+	}
+
 	return false
 }
 
