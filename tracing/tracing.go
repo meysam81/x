@@ -51,7 +51,7 @@ func NewTracer(ctx context.Context, config *TracingConfig, logger *logging.Logge
 	opts := []otlptracehttp.Option{}
 
 	if config.OTLPEndpointURL != "" {
-		otlptracehttp.WithEndpointURL(config.OTLPEndpointURL)
+		opts = append(opts, otlptracehttp.WithEndpointURL(config.OTLPEndpointURL))
 	}
 
 	exporter, err := otlptracehttp.New(ctx, opts...)
