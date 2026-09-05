@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.13.0](https://github.com/meysam81/x/compare/tracing-v1.12.5...tracing-v1.13.0) (2026-09-05)
+
+
+### Features
+
+* **chimux:** readiness endpoint, probe-aware metrics, tracing fixes ([#95](https://github.com/meysam81/x/issues/95)) ([fff2410](https://github.com/meysam81/x/commit/fff2410e19353b1ae9cc28a8c68592aa7d8b57f3))
+
 ## [1.12.5](https://github.com/meysam81/x/compare/tracing-v1.12.4...tracing-v1.12.5) (2026-02-24)
 
 
