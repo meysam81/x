@@ -6,6 +6,7 @@ import (
 	"errors"
 	"net/http"
 	"net/http/httptest"
+	"runtime"
 	"strings"
 	"testing"
 	"time"
@@ -165,5 +166,55 @@ func TestReadyzExcludedFromAccessLog(t *testing.T) {
 	}
 	if !strings.Contains(logs, `"path":"/other"`) {
 		t.Errorf("expected /other request to be logged, got: %s", logs)
+	}
+}
+
+// TestReadyzDedupesInFlightChecks verifies that a check ignoring context
+// cancellation and blocking forever accumulates at most one goroutine no
+// matter how many requests hit it while it is still running, and that
+// every request still gets a timely 503 instead of waiting on the blocked
+// check.
+func TestReadyzDedupesInFlightChecks(t *testing.T) {
+	const timeout = 30 * time.Millisecond
+
+	block := make(chan struct{}) // never closed: the check blocks forever
+
+	r := NewChi(
+		WithReadyz(ReadyCheck{
+			Name: "wedged",
+			Check: func(context.Context) error {
+				<-block // deliberately ignores ctx
+				return nil
+			},
+		}),
+		WithReadyzTimeout(timeout),
+	)
+
+	runtime.GC()
+	time.Sleep(20 * time.Millisecond)
+	before := runtime.NumGoroutine()
+
+	for i := 0; i < 10; i++ {
+		req := httptest.NewRequest(http.MethodGet, "/readyz", nil)
+		w := httptest.NewRecorder()
+
+		start := time.Now()
+		r.ServeHTTP(w, req)
+		elapsed := time.Since(start)
+
+		if w.Code != http.StatusServiceUnavailable {
+			t.Fatalf("request %d: status = %d, want 503 (body=%s)", i, w.Code, w.Body.String())
+		}
+		if elapsed > 2500*time.Millisecond {
+			t.Fatalf("request %d took %s, want well under 2.5s", i, elapsed)
+		}
+	}
+
+	runtime.GC()
+	time.Sleep(20 * time.Millisecond)
+	after := runtime.NumGoroutine()
+
+	if after > before+1 {
+		t.Errorf("NumGoroutine before=%d after=%d, want at most +1 (one goroutine for the wedged check)", before, after)
 	}
 }

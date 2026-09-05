@@ -37,6 +37,7 @@ type options struct {
 	readyzEndpoint string
 	readyChecks    []ReadyCheck
 	readyzTimeout  time.Duration
+	readyzRunner   *readyzRunner
 }
 
 func WithDisableRecoveryMiddleware() Option {
@@ -168,6 +169,7 @@ func NewChi(opts ...Option) *chi.Mux {
 		metricsEndpoint:           "/metrics",
 		readyzEndpoint:            "/readyz",
 		readyzTimeout:             defaultReadyzTimeout,
+		readyzRunner:              &readyzRunner{inflight: make(map[string]*readyRun)},
 	}
 
 	for _, opt := range opts {
