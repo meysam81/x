@@ -146,15 +146,13 @@ func runReadyChecks(ctx context.Context, checks []ReadyCheck, timeout time.Durat
 	var wg sync.WaitGroup
 
 	for _, c := range checks {
-		wg.Add(1)
-		go func(c ReadyCheck) {
-			defer wg.Done()
+		wg.Go(func() {
 			if err := rr.run(ctx, timeout, c); err != nil {
 				mu.Lock()
 				failed[c.Name] = err.Error()
 				mu.Unlock()
 			}
-		}(c)
+		})
 	}
 
 	wg.Wait()
