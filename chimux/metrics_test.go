@@ -4,9 +4,12 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"slices"
 	"strings"
 	"testing"
+	"time"
 
+	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/testutil"
 )
 
@@ -17,7 +20,7 @@ import (
 // under `go test -count=N`, where this whole test (and its accumulated
 // counters) reruns in the same process.
 func TestMetrics(t *testing.T) {
-	m := sharedMetrics()
+	m := sharedMetrics(nil)
 
 	r := NewChi(WithMetrics(), WithHealthz(), WithReadyz())
 	r.Get("/api/domains/{domain}/health", func(w http.ResponseWriter, _ *http.Request) { w.WriteHeader(http.StatusOK) })
@@ -83,7 +86,7 @@ func TestMetrics(t *testing.T) {
 // Prometheus registration (see sharedMetrics), and that both routers'
 // traffic lands on the same shared counters.
 func TestMetricsSharedAcrossRouters(t *testing.T) {
-	m := sharedMetrics()
+	m := sharedMetrics(nil)
 
 	r1 := NewChi(WithMetrics())
 	r1.Get("/one", func(w http.ResponseWriter, _ *http.Request) { w.WriteHeader(http.StatusOK) })
@@ -130,4 +133,46 @@ func scrapeMetrics(t *testing.T, baseURL string) string {
 		t.Fatal(err)
 	}
 	return string(body)
+}
+
+// TestMetricsBuckets builds the collectors on a private registry (the
+// process-wide singleton has already fixed its buckets by the time this
+// runs) and checks the histogram carries the requested upper bounds, with
+// DefBuckets as the fallback.
+func TestMetricsBuckets(t *testing.T) {
+	upperBounds := func(t *testing.T, buckets []float64) []float64 {
+		t.Helper()
+		reg := prometheus.NewRegistry()
+		m := newMetrics(reg, buckets)
+		m.RecordRequest(http.MethodGet, "/x", http.StatusOK, time.Millisecond)
+		families, err := reg.Gather()
+		if err != nil {
+			t.Fatal(err)
+		}
+		for _, f := range families {
+			if f.GetName() != "http_request_duration_seconds" {
+				continue
+			}
+			var got []float64
+			for _, b := range f.GetMetric()[0].GetHistogram().GetBucket() {
+				got = append(got, b.GetUpperBound())
+			}
+			return got
+		}
+		t.Fatal("http_request_duration_seconds not gathered")
+		return nil
+	}
+
+	t.Run("custom buckets are applied", func(t *testing.T) {
+		want := []float64{0.001, 0.005, 0.01}
+		if got := upperBounds(t, want); !slices.Equal(got, want) {
+			t.Errorf("upper bounds = %v, want %v", got, want)
+		}
+	})
+
+	t.Run("nil falls back to DefBuckets", func(t *testing.T) {
+		if got := upperBounds(t, nil); !slices.Equal(got, prometheus.DefBuckets) {
+			t.Errorf("upper bounds = %v, want DefBuckets %v", got, prometheus.DefBuckets)
+		}
+	})
 }
