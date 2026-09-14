@@ -33,6 +33,7 @@ type options struct {
 	healthzEndpoint      string
 	enableMetricsLogging bool
 	metricsEndpoint      string
+	metricsBuckets       []float64
 
 	enableReadyz   bool
 	readyzEndpoint string
@@ -98,6 +99,22 @@ func WithHealthEndpoint(uri string) Option {
 func WithMetricsEndpoint(uri string) Option {
 	return func(o *options) {
 		o.metricsEndpoint = uri
+	}
+}
+
+// WithMetricsBuckets sets the http_request_duration_seconds histogram
+// buckets (seconds, ascending). The default is prometheus.DefBuckets, whose
+// first bucket is 5ms -- too coarse to see a middleware or auth regression
+// in a service whose handlers answer in microseconds. Pass DefBuckets plus
+// finer leading buckets to keep existing dashboards and alert rules working.
+//
+// The collectors are a process-wide singleton (see sharedMetrics), so the
+// buckets are fixed by the first NewChi(WithMetrics()) in the process; a
+// later router passing different buckets keeps the first set. Unsorted
+// buckets panic at construction, as prometheus.NewHistogramVec does.
+func WithMetricsBuckets(buckets []float64) Option {
+	return func(o *options) {
+		o.metricsBuckets = buckets
 	}
 }
 
@@ -207,7 +224,7 @@ func NewChi(opts ...Option) *chi.Mux {
 	}
 
 	if o.enableMetrics {
-		m := sharedMetrics()
+		m := sharedMetrics(o.metricsBuckets)
 		r.Use(m.middleware(metricsSkipPaths(o)))
 		r.Get(o.metricsEndpoint, promhttp.Handler().ServeHTTP)
 	}

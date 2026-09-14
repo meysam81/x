@@ -67,17 +67,24 @@ var (
 // registry (kept deliberately, so the default go_/process_ collectors still
 // appear on /metrics), and registering the same collector name twice
 // panics -- so every NewChi(WithMetrics()) router in this process shares
-// this one instance instead of each constructing its own.
-func sharedMetrics() *metrics {
+// this one instance instead of each constructing its own. buckets applies
+// only on that first construction (see WithMetricsBuckets).
+func sharedMetrics(buckets []float64) *metrics {
 	sharedMetricsOnce.Do(func() {
-		sharedMetricsInst = newMetrics()
+		sharedMetricsInst = newMetrics(prometheus.DefaultRegisterer, buckets)
 	})
 	return sharedMetricsInst
 }
 
-func newMetrics() *metrics {
+// newMetrics builds the RED collectors on reg. A nil or empty buckets slice
+// falls back to prometheus.DefBuckets.
+func newMetrics(reg prometheus.Registerer, buckets []float64) *metrics {
+	if len(buckets) == 0 {
+		buckets = prometheus.DefBuckets
+	}
+	factory := promauto.With(reg)
 	return &metrics{
-		httpRequestsTotal: *promauto.NewCounterVec(
+		httpRequestsTotal: *factory.NewCounterVec(
 			prometheus.CounterOpts{
 				Name: "http_requests_total",
 				Help: "Total number of HTTP requests",
@@ -85,16 +92,16 @@ func newMetrics() *metrics {
 			[]string{"method", "path", "status_code"},
 		),
 
-		httpRequestDuration: *promauto.NewHistogramVec(
+		httpRequestDuration: *factory.NewHistogramVec(
 			prometheus.HistogramOpts{
 				Name:    "http_request_duration_seconds",
 				Help:    "HTTP request duration in seconds",
-				Buckets: prometheus.DefBuckets,
+				Buckets: buckets,
 			},
 			[]string{"method", "path", "status_code"},
 		),
 
-		httpResponseStatus: *promauto.NewCounterVec(
+		httpResponseStatus: *factory.NewCounterVec(
 			prometheus.CounterOpts{
 				Name: "http_response_status_total",
 				Help: "Total number of HTTP responses by status code",
@@ -102,7 +109,7 @@ func newMetrics() *metrics {
 			[]string{"status_code", "status_class"},
 		),
 
-		httpRequestsInFlight: promauto.NewGauge(
+		httpRequestsInFlight: factory.NewGauge(
 			prometheus.GaugeOpts{
 				Name: "http_requests_in_flight",
 				Help: "Number of HTTP requests currently being processed",
