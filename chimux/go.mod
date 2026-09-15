@@ -6,7 +6,7 @@ require (
 	github.com/go-chi/chi/v5 v5.2.5
 	github.com/meysam81/x/logging v0.0.0-20260305045513-aabd43ea8fe4
 	github.com/prometheus/client_golang v1.23.2
-	github.com/rs/zerolog v1.34.0
+	github.com/rs/zerolog v1.35.1
 )
 
 require (
