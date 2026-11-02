@@ -1,6 +1,6 @@
 module github.com/meysam81/x/ratelimit
 
-go 1.25.0
+go 1.27.3
 
 require github.com/redis/go-redis/v9 v9.18.0
 
