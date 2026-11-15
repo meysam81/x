@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
 )
@@ -155,16 +156,6 @@ func getStatusClass(statusCode int) string {
 	}
 }
 
-type responseWriter struct {
-	http.ResponseWriter
-	statusCode int
-}
-
-func (rw *responseWriter) WriteHeader(code int) {
-	rw.statusCode = code
-	rw.ResponseWriter.WriteHeader(code)
-}
-
 // middleware returns chi middleware recording RED metrics for every request
 // whose path is not in skip (e.g. the metrics/healthz/readyz endpoints of
 // the router it is attached to -- see metricsSkipPaths). A skipped request
@@ -182,14 +173,19 @@ func (m *metrics) middleware(skip map[string]struct{}) func(http.Handler) http.H
 
 			start := time.Now()
 
-			wrapped := &responseWriter{
-				ResponseWriter: w,
-				statusCode:     200,
-			}
+			// chi's wrapper (as in the access-log middleware) keeps the optional
+			// Flusher/Hijacker/ReaderFrom interfaces and Unwrap, so streamed
+			// responses (SSE, chunked) and http.ResponseController keep working.
+			wrapped := middleware.NewWrapResponseWriter(w, r.ProtoMajor)
 
 			defer func() {
 				duration := time.Since(start)
-				m.RecordRequest(r.Method, routePattern(r), wrapped.statusCode, duration)
+				// Status is 0 until a header is written; net/http sends 200 then.
+				status := wrapped.Status()
+				if status == 0 {
+					status = http.StatusOK
+				}
+				m.RecordRequest(r.Method, routePattern(r), status, duration)
 			}()
 
 			m.IncrementInFlight()
