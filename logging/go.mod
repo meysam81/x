@@ -1,6 +1,6 @@
 module github.com/meysam81/x/logging
 
-go 1.25.0
+go 1.27.4
 
 require github.com/rs/zerolog v1.34.0
 
