@@ -176,3 +176,75 @@ func TestMetricsBuckets(t *testing.T) {
 		}
 	})
 }
+
+// TestMetricsMiddlewarePreservesFlush guards the streamed-response path: the
+// metrics wrapper must not hide Flush/Unwrap, or SSE and chunked responses are
+// held until the handler returns.
+func TestMetricsMiddlewarePreservesFlush(t *testing.T) {
+	m := sharedMetrics(nil)
+	mw := m.middleware(map[string]struct{}{})
+
+	t.Run("ResponseController.Flush is supported", func(t *testing.T) {
+		var flushErr error
+		h := mw(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+			flushErr = http.NewResponseController(w).Flush()
+		}))
+		h.ServeHTTP(httptest.NewRecorder(), httptest.NewRequest(http.MethodGet, "/", nil))
+		if flushErr != nil {
+			t.Fatalf("Flush behind metrics middleware: want nil, got %v", flushErr)
+		}
+	})
+
+	t.Run("first chunk reaches the client before the handler returns", func(t *testing.T) {
+		flushed := make(chan struct{})
+		release := make(chan struct{})
+		done := make(chan struct{})
+		srv := httptest.NewServer(mw(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+			defer close(done)
+			_, _ = io.WriteString(w, "first\n")
+			if err := http.NewResponseController(w).Flush(); err != nil {
+				t.Errorf("flush: %v", err)
+			}
+			close(flushed)
+			select {
+			case <-release:
+			case <-time.After(5 * time.Second):
+			}
+			_, _ = io.WriteString(w, "second\n")
+		})))
+		defer srv.Close()
+
+		resp, err := http.Get(srv.URL) //nolint:gosec // test server URL
+		if err != nil {
+			t.Fatal(err)
+		}
+		defer func() { _ = resp.Body.Close() }()
+
+		got := make(chan string, 1)
+		go func() {
+			buf := make([]byte, 6)
+			n, _ := io.ReadFull(resp.Body, buf)
+			got <- string(buf[:n])
+		}()
+		select {
+		case s := <-got:
+			if s != "first\n" {
+				t.Fatalf("first chunk = %q", s)
+			}
+		case <-time.After(3 * time.Second):
+			t.Fatal("first chunk not received while handler is still running: Flush is not forwarded")
+		}
+		<-flushed
+		close(release)
+		<-done
+	})
+
+	t.Run("implicit WriteHeader records 200", func(t *testing.T) {
+		before := testutil.ToFloat64(m.httpRequestsTotal.WithLabelValues("GET", "/implicit", "200"))
+		h := mw(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) { _, _ = io.WriteString(w, "x") }))
+		h.ServeHTTP(httptest.NewRecorder(), httptest.NewRequest(http.MethodGet, "/implicit", nil))
+		if got := testutil.ToFloat64(m.httpRequestsTotal.WithLabelValues("GET", "/implicit", "200")) - before; got != 1 {
+			t.Errorf("want 1 request recorded as 200, got %v", got)
+		}
+	})
+}
